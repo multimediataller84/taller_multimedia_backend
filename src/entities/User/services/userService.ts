@@ -107,7 +107,7 @@ export class UserService implements IUserServices {
         throw new Error("Invalid credentials");
       }
 
-      const payload = { id: user.id, email: user.email };
+      const payload = { id: user.id, email: user.email, username: user.username, role: user.role };
 
       //Modificacion del token para hacerlo variable de entorno
       const token = jwt.sign(payload, config.JWT_ACCESS_SECRET as jwt.Secret,
