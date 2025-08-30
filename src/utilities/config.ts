@@ -1,7 +1,7 @@
 import type { TConfig } from "../models/types/TConf.js";
 import { env } from "./validator.js";
 
-const config: TConfig = {
+export const config: TConfig = {
   DATABASE: env.DATABASE,
   USER: env.USER,
   PASSWORD: env.PASSWORD,
@@ -15,5 +15,3 @@ const config: TConfig = {
   URL: env.URL,
   DB_PORT: env.DB_PORT,
 };
-
-export default config;

@@ -5,7 +5,7 @@ import type { TUser } from "../domain/types/TUser.js";
 import type { TLogin } from "../domain/types/TLogin.js";
 import bcrypt from "bcrypt";
 import * as jwt from "jsonwebtoken";
-import config from "../../../utilities/config.js";
+import { config } from "../../../utilities/config.js";
 import type { TPayload } from "../domain/types/TPayload.js";
 
 export class UserService implements IUserServices {
