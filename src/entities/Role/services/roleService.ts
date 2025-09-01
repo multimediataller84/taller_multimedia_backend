@@ -1,6 +1,8 @@
+import type { IRoleServices } from "../domain/interfaces/IRoleServices.js";
 import Role from "../domain/models/RoleModel.js";
+import type { TRoleEndpoint } from "../domain/types/TRoleEndpoint.js";
 
-export class RoleService {
+export class RoleService implements IRoleServices{
   private static instance: RoleService;
 
   public static getInstance(): RoleService {
@@ -10,7 +12,7 @@ export class RoleService {
     return RoleService.instance;
   }
 
-  get = async (id: number) => {
+  get = async (id: number): Promise<TRoleEndpoint> => {
     try {
       const role = await Role.findByPk(id);
       if (!role) {
@@ -22,7 +24,7 @@ export class RoleService {
     }
   };
 
-  getAll = async () => {
+  getAll = async (): Promise<TRoleEndpoint[]> => {
     try {
       const roles = await Role.findAll();
       if (roles.length === 0) {
@@ -34,7 +36,7 @@ export class RoleService {
     }
   };
 
-  post = async (data: { name: string; description?: string }) => {
+  post = async (data: { name: string; description?: string }): Promise<TRoleEndpoint> => {
     try {
       const { name } = data;
       if (!name) throw new Error("name is required");
@@ -53,7 +55,7 @@ export class RoleService {
     }
   };
 
-  patch = async (id: number, data: { name?: string; description?: string }) => {
+  patch = async (id: number, data: { name?: string; description?: string }): Promise<TRoleEndpoint> => {
     try {
       const role = await Role.findByPk(id);
       if (!role) throw new Error("role not found");
@@ -74,7 +76,7 @@ export class RoleService {
     }
   };
 
-  delete = async (id: number) => {
+  delete = async (id: number): Promise<TRoleEndpoint> => {
     try {
       const role = await Role.findByPk(id);
       if (!role) throw new Error("role not found");
