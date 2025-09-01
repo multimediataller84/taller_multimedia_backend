@@ -4,7 +4,7 @@ import type { TUserEndpoint } from "../domain/types/TUserEndpoint.js";
 import type { TUser } from "../domain/types/TUser.js";
 import type { TLogin } from "../domain/types/TLogin.js";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 import { config } from "../../../utilities/config.js";
 import type { TPayload } from "../domain/types/TPayload.js";
 
@@ -107,10 +107,13 @@ export class UserService implements IUserServices {
         throw new Error("Invalid credentials");
       }
 
-      const payload = { id: user.id, email: user.email };
-      const token = jwt.sign(payload, config.JWT_ACCESS_SECRET, {
-        expiresIn: "1h",
-      });
+      const payload = { id: user.id, email: user.email, username: user.username, role: user.role };
+
+      //Modificacion del token para hacerlo variable de entorno
+      const token = jwt.sign(payload, config.JWT_ACCESS_SECRET as jwt.Secret,
+        {expiresIn: config.JWT_EXPIRES_IN} as jwt.SignOptions
+      );
+
       return { token, user };
     } catch (error) {
       throw {

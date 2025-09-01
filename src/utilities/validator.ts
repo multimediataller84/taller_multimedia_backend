@@ -9,6 +9,7 @@ const envSchema = z.object({
   PASSWORD: z.string(),
   HOST: z.string(),
   JWT_ACCESS_SECRET: z.string(),
+  JWT_EXPIRES_IN: z.string(),
   NODE_ENV: z.string(),
   CORS_ORIGIN: z.string(),
   PORT: z.string(),
