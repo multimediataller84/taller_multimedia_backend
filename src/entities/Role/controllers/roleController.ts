@@ -26,7 +26,7 @@ export class RoleController implements IRoleController{
     }
   };
 
-  getAll = async (_req: Request, res: Response): Promise<void> => {
+  getAll = async (req: Request, res: Response): Promise<void> => {
     try {
       const result = await this.useCases.getAll.execute();
       res.status(200).json(result);

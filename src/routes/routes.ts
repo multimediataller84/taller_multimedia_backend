@@ -7,10 +7,16 @@ import invoiceRouter from "../entities/Invoice/routes/invoiceRoutes.js";
 import invoiceDetailRouter from "../entities/InvoiceDetail/routes/invoiceDetailRoutes.js";
 import productRouter from "../entities/Product/routes/productRoutes.js";
 import rolesRouter from "../entities/Role/routes/roleRoutes.js";
+import swaggerSpec from "../lib/swagger.js";
 
 const router = express.Router();
 
-router.use("/user", authMiddleware, usersRouter);
+router.get("/openapi.json", (req, res) => {
+  res.setHeader("Content-Type", "application/json");
+  res.send(swaggerSpec);
+});
+
+router.use("/user", usersRouter);
 router.use("/auth", authRouter);
 router.use("/customer", authMiddleware, customerRouter);
 router.use("/invoice", authMiddleware, invoiceRouter);
