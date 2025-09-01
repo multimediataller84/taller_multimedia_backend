@@ -4,9 +4,11 @@ import type { TUserEndpoint } from "../domain/types/TUserEndpoint.js";
 import type { TUser } from "../domain/types/TUser.js";
 import type { TLogin } from "../domain/types/TLogin.js";
 import bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
+//import * as jwt from "jsonwebtoken";
+import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import { config } from "../../../utilities/config.js";
 import type { TPayload } from "../domain/types/TPayload.js";
+import Role from "../../Role/domain/models/RoleModel.js";
 
 export class UserService implements IUserServices {
   private static instance: UserService;
@@ -20,7 +22,9 @@ export class UserService implements IUserServices {
 
   get = async (id: number): Promise<TUserEndpoint> => {
     try {
-      const user = await User.findByPk(id);
+      const user = await User.findByPk(id, {
+        include: [{ model: Role, as: "roleEntity", attributes: ["id", "name"] }],
+      });
       if (!user) {
         throw new Error("user not found");
       }
@@ -98,24 +102,38 @@ export class UserService implements IUserServices {
     try {
       const { email, password } = data;
       const user = await User.findOne({ where: { email } });
+
+      console.log('[login] email:', email, 'user found?', !!user);
+
       if (!user) {
         throw new Error("Invalid credentials");
       }
 
       const ok = await bcrypt.compare(password, user.password);
+
+      console.log('[login] compare result:', ok);
+
       if (!ok) {
         throw new Error("Invalid credentials");
       }
 
       const payload = { id: user.id, email: user.email, username: user.username, role: user.role };
 
+      console.log('[login] about to sign jwt', {
+      hasSecret: !!config.JWT_ACCESS_SECRET,
+      expiresIn: config.JWT_EXPIRES_IN
+      });
+
       //Modificacion del token para hacerlo variable de entorno
-      const token = jwt.sign(payload, config.JWT_ACCESS_SECRET as jwt.Secret,
-        {expiresIn: config.JWT_EXPIRES_IN} as jwt.SignOptions
+      const token = jwt.sign(
+      payload,
+      config.JWT_ACCESS_SECRET as Secret,
+      { expiresIn: config.JWT_EXPIRES_IN } as SignOptions
       );
 
       return { token, user };
     } catch (error) {
+      console.error('[login] error signing or processing jwt:', error);
       throw {
         statusCode: 401,
         message: "Invalid credentials",
