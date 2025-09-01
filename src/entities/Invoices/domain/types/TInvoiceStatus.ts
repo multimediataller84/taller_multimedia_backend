@@ -1,0 +1,1 @@
+export type TInvoiceStatus = "Issued" | "Pending" | "Canceled";
