@@ -20,6 +20,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare remember_token: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
+  declare roleId: CreationOptional<number>;
 }
 
 User.init(
@@ -45,6 +46,11 @@ User.init(
     role: {
       type: DataTypes.STRING,
       defaultValue: "user",
+    },
+    roleId: {
+    type: DataTypes.INTEGER.UNSIGNED,
+    allowNull: true,
+    field: "role_id"
     },
     email: {
       type: DataTypes.STRING,
