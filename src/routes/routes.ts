@@ -1,10 +1,11 @@
 import express from "express";
+import { authMiddleware } from "../middlewares/auth.js";
 import usersRouter from "../entities/User/routes/userRoutes.js";
 import authRouter from "../entities/User/routes/authRoutes.js";
 import customerRouter from "../entities/CustomerAccount/routes/customerRoutes.js";
 import invoiceRouter from "../entities/Invoice/routes/invoiceRoutes.js";
 import invoiceDetailRouter from "../entities/InvoiceDetail/routes/invoiceDetailRoutes.js";
-import { authMiddleware } from "../middlewares/auth.js";
+import productRouter from "../entities/Product/routes/productRoutes.js";
 
 const router = express.Router();
 
@@ -13,5 +14,6 @@ router.use("/auth", authRouter);
 router.use("/customer", authMiddleware, customerRouter);
 router.use("/invoice", authMiddleware, invoiceRouter);
 router.use("/invoice/detail", authMiddleware, invoiceDetailRouter);
+router.use("/product", authMiddleware, productRouter)
 
 export default router;
