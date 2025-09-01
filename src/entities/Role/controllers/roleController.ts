@@ -1,8 +1,9 @@
 import type { Request, Response } from "express";
 import { RoleRepository } from "../repository/roleRepository.js";
 import { RoleUseCasesController } from "./roleUseCasesController.js";
+import type { IRoleController } from "../domain/interfaces/IRoleController.js";
 
-export class RoleController {
+export class RoleController implements IRoleController{
   private static instance: RoleController;
 
   public static getInstance(): RoleController {

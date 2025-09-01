@@ -16,6 +16,6 @@ router.use("/customer", authMiddleware, customerRouter);
 router.use("/invoice", authMiddleware, invoiceRouter);
 router.use("/invoice/detail", authMiddleware, invoiceDetailRouter);
 router.use("/product", authMiddleware, productRouter)
-router.use("/roles", rolesRouter);
+router.use("/roles", authMiddleware, rolesRouter);
 
 export default router;

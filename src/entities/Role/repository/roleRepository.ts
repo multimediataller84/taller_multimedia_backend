@@ -1,6 +1,8 @@
+import type { IRoleRepository } from "../domain/interfaces/IRoleRepository.js";
+import type { TRoleEndpoint } from "../domain/types/TRoleEndpoint.js";
 import { RoleService } from "../services/roleService.js";
 
-export class RoleRepository {
+export class RoleRepository implements IRoleRepository{
   private static instance: RoleRepository;
   private readonly roleService = RoleService.getInstance();
 
@@ -11,7 +13,7 @@ export class RoleRepository {
     return RoleRepository.instance;
   }
 
-  get = async (id: number) => {
+  get = async (id: number): Promise<TRoleEndpoint> => {
     try {
       const role = await this.roleService.get(id);
       if (!role) {
@@ -23,7 +25,7 @@ export class RoleRepository {
     }
   };
 
-  getAll = async () => {
+  getAll = async (): Promise<TRoleEndpoint[]> => {
     try {
       const roles = await this.roleService.getAll();
       if (!roles) {
@@ -35,7 +37,7 @@ export class RoleRepository {
     }
   };
 
-  post = async (data: { name: string; description?: string }) => {
+  post = async (data: { name: string; description?: string }): Promise<TRoleEndpoint> => {
     try {
       const role = await this.roleService.post(data);
       if (!role) {
@@ -47,7 +49,7 @@ export class RoleRepository {
     }
   };
 
-  patch = async (id: number, data: { name?: string; description?: string }) => {
+  patch = async (id: number, data: { name?: string; description?: string }): Promise<TRoleEndpoint> => {
     try {
       const role = await this.roleService.patch(id, data);
       if (!role) {
@@ -59,7 +61,7 @@ export class RoleRepository {
     }
   };
 
-  delete = async (id: number) => {
+  delete = async (id: number): Promise<TRoleEndpoint> => {
     try {
       const role = await this.roleService.delete(id);
       if (!role) {
