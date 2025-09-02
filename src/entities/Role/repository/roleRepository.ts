@@ -1,4 +1,5 @@
 import type { IRoleRepository } from "../domain/interfaces/IRoleRepository.js";
+import type { TRole } from "../domain/types/TRole.js";
 import type { TRoleEndpoint } from "../domain/types/TRoleEndpoint.js";
 import { RoleService } from "../services/roleService.js";
 
@@ -37,7 +38,8 @@ export class RoleRepository implements IRoleRepository{
     }
   };
 
-  post = async (data: { name: string; description?: string }): Promise<TRoleEndpoint> => {
+
+  post = async (data: TRole): Promise<TRoleEndpoint> => {
     try {
       const role = await this.roleService.post(data);
       if (!role) {
@@ -49,7 +51,7 @@ export class RoleRepository implements IRoleRepository{
     }
   };
 
-  patch = async (id: number, data: { name?: string; description?: string }): Promise<TRoleEndpoint> => {
+  patch = async (id: number, data: TRole): Promise<TRoleEndpoint> => {
     try {
       const role = await this.roleService.patch(id, data);
       if (!role) {
