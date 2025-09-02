@@ -1,5 +1,6 @@
 import type { IRoleServices } from "../domain/interfaces/IRoleServices.js";
 import Role from "../domain/models/RoleModel.js";
+import type { TRole } from "../domain/types/TRole.js";
 import type { TRoleEndpoint } from "../domain/types/TRoleEndpoint.js";
 
 export class RoleService implements IRoleServices{
@@ -36,7 +37,7 @@ export class RoleService implements IRoleServices{
     }
   };
 
-  post = async (data: { name: string; description?: string }): Promise<TRoleEndpoint> => {
+  post = async (data: TRole): Promise<TRoleEndpoint> => {
     try {
       const { name } = data;
       if (!name) throw new Error("name is required");
@@ -55,7 +56,7 @@ export class RoleService implements IRoleServices{
     }
   };
 
-  patch = async (id: number, data: { name?: string; description?: string }): Promise<TRoleEndpoint> => {
+  patch = async (id: number, data: TRole): Promise<TRoleEndpoint> => {
     try {
       const role = await Role.findByPk(id);
       if (!role) throw new Error("role not found");
