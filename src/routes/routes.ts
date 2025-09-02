@@ -26,5 +26,4 @@ router.use("/product", authMiddleware, productRouter);
 router.use("/category", authMiddleware, categoryRouter);
 router.use("/role", authMiddleware, rolesRouter);
 
-
 export default router;
