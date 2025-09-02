@@ -38,6 +38,7 @@ export class RoleRepository implements IRoleRepository{
     }
   };
 
+
   post = async (data: TRole): Promise<TRoleEndpoint> => {
     try {
       const role = await this.roleService.post(data);
