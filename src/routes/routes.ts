@@ -8,6 +8,7 @@ import invoiceDetailRouter from "../entities/InvoiceDetail/routes/invoiceDetailR
 import productRouter from "../entities/Product/routes/productRoutes.js";
 import rolesRouter from "../entities/Role/routes/roleRoutes.js";
 import swaggerSpec from "../lib/swagger.js";
+import categoryRouter from "../entities/Category/routes/categoryRoutes.js";
 
 const router = express.Router();
 
@@ -21,7 +22,9 @@ router.use("/user", authMiddleware, usersRouter);
 router.use("/customer", authMiddleware, customerRouter);
 router.use("/invoice", authMiddleware, invoiceRouter);
 router.use("/invoice/detail", authMiddleware, invoiceDetailRouter);
-router.use("/product", authMiddleware, productRouter)
-router.use("/roles", authMiddleware, rolesRouter);
+router.use("/product", authMiddleware, productRouter);
+router.use("/category", authMiddleware, categoryRouter);
+router.use("/role", authMiddleware, rolesRouter);
+
 
 export default router;
