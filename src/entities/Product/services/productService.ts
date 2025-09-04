@@ -2,6 +2,8 @@ import Product from "../domain/models/ProductModel.js";
 import type { IProductServices } from "../domain/interfaces/IProductServices.js";
 import type { TProductEndpoint } from "../domain/types/TProductEndpoint.js";
 import type { TProduct } from "../domain/types/TProduct.js";
+import Tax from "../../Tax/domain/models/TaxModel.js";
+import Category from "../../Category/domain/models/CategoryModel.js";
 
 export class ProductService implements IProductServices {
   private static instance: ProductService;
@@ -15,7 +17,20 @@ export class ProductService implements IProductServices {
 
   get = async (id: number): Promise<TProductEndpoint> => {
     try {
-      const product = await Product.findByPk(id);
+      const product = await Product.findByPk(id, {
+        include: [
+          {
+            model: Tax,
+            as: "tax",
+            attributes: ["name", "percentage", "description"],
+          },
+          {
+            model: Category,
+            as: "category",
+            attributes: ["name", "description"]
+          }
+        ],
+      });
       if (!product) {
         throw new Error("product not found");
       }
@@ -27,7 +42,21 @@ export class ProductService implements IProductServices {
 
   getAll = async (): Promise<TProductEndpoint[]> => {
     try {
-      const invoice = await Product.findAll();
+      const invoice = await Product.findAll({
+        include: [
+          {
+            model: Tax,
+            as: "tax",
+            attributes: ["name", "percentage", "description"],
+          },
+          {
+            model: Category,
+            as: "category",
+            attributes: ["name", "description"]
+          }
+        ],
+      });
+
       if (invoice.length === 0) {
         throw new Error("product not found");
       }
@@ -43,7 +72,21 @@ export class ProductService implements IProductServices {
       const exists = await Product.findOne({ where: { sku } });
       if (exists) throw new Error("product already exists");
 
-      const product = await Product.create(data);
+      const product = await Product.create(data, {
+        include: [
+          {
+            model: Tax,
+            as: "tax",
+            attributes: ["name", "percentage", "description"],
+          },
+          {
+            model: Category,
+            as: "category",
+            attributes: ["name", "description"]
+          }
+        ],
+      });
+
       return product;
     } catch (error) {
       throw error;
@@ -57,7 +100,23 @@ export class ProductService implements IProductServices {
         throw new Error("product not found");
       }
       await product.update(data);
-      return product;
+
+      const update = await Product.findByPk(id, {
+        include: [
+          {
+            model: Tax,
+            as: "tax",
+            attributes: ["name", "percentage", "description"],
+          },
+          {
+            model: Category,
+            as: "category",
+            attributes: ["name", "description"]
+          }
+        ],
+      });
+
+      return update ?? product;
     } catch (error) {
       throw error;
     }
@@ -65,7 +124,21 @@ export class ProductService implements IProductServices {
 
   delete = async (id: number): Promise<TProductEndpoint> => {
     try {
-      const product = await Product.findByPk(id);
+      const product = await Product.findByPk(id, {
+        include: [
+          {
+            model: Tax,
+            as: "tax",
+            attributes: ["name", "percentage", "description"],
+          },
+          {
+            model: Category,
+            as: "category",
+            attributes: ["name", "description"]
+          }
+        ],
+      });
+
       if (!product) {
         throw new Error("product not found");
       }
