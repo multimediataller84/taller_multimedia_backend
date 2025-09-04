@@ -12,7 +12,6 @@ class Category extends Model<InferAttributes<Category>, InferCreationAttributes<
   declare id: CreationOptional<number>;
   declare name: string;
   declare description: string | null;
-  declare tax_id: number | null; 
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -33,16 +32,6 @@ Category.init(
       type: DataTypes.STRING(512),
       allowNull: true,
     },
-    tax_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: true,
-      references: {
-        model: Tax,
-        key: "id",
-      },
-      onUpdate: "CASCADE",
-      onDelete: "SET NULL",
-    },
     createdAt: {
       type: DataTypes.DATE,
       allowNull: false,
@@ -61,8 +50,5 @@ Category.init(
     timestamps: true,
   }
 );
-
-Category.belongsTo(Tax, { foreignKey: "tax_id", as: "tax" });
-Tax.hasMany(Category, { foreignKey: "tax_id", as: "categories" });
 
 export default Category;

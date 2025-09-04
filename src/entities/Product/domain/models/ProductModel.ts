@@ -8,11 +8,16 @@ import {
 import { sequelize } from "../../../../database/connection.js";
 import type { TProductStatus } from "../types/TProductStatus.js";
 
-class Product extends Model<InferAttributes<Product>, InferCreationAttributes<Product>> {
+class Product extends Model<
+  InferAttributes<Product>,
+  InferCreationAttributes<Product>
+> {
   declare id: CreationOptional<number>;
   declare product_name: string;
   declare sku: string;
-  declare category: number;
+  declare cabys_code: string;
+  declare category_id: number;
+  declare tax_id: number;
   declare profit_margin: number;
   declare unit_price: number;
   declare total: number;
@@ -38,7 +43,16 @@ Product.init(
       allowNull: false,
       unique: true,
     },
-    category: {
+    cabys_code: {
+      type: DataTypes.STRING(50),
+      allowNull: false,
+      unique: true,
+    },
+    category_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+    },
+    tax_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
     },
