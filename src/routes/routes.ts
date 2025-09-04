@@ -21,7 +21,7 @@ router.get("/openapi.json", (req, res) => {
 });
 
 router.use("/auth", authRouter);
-router.use("/user",  usersRouter);
+router.use("/user", authMiddleware, usersRouter);
 router.use("/customer", authMiddleware, customerRouter);
 router.use("/invoice", authMiddleware, invoiceRouter);
 router.use("/invoice/detail", authMiddleware, invoiceDetailRouter);
