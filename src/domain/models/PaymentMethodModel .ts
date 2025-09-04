@@ -6,7 +6,7 @@ import {
   type CreationOptional,
 } from "sequelize";
 import { sequelize } from "../../database/connection.js";
-import type { TPaymentMethod } from "../../entities/Invoice/domain/types/TPaymentMethod.js";
+import type { TPaymentMethod } from "../types/TPaymentMethod.js";
 
 class PaymentMethod extends Model<InferAttributes<PaymentMethod>, InferCreationAttributes<PaymentMethod>> {
   declare id: CreationOptional<number>;

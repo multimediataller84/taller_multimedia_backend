@@ -8,7 +8,7 @@ import {
 import { sequelize } from "../../../../database/connection.js";
 import Customer from "../../../CustomerAccount/domain/models/CustomerModel.js";
 import Invoice from "../../../Invoice/domain/models/InvoiceModel.js";
-import CreditPayment from "../../../CreditPayment(HACER)/domain/models/CreditPaymentModel.js";
+import CreditPayment from "../../../CreditPayment/domain/models/CreditPaymentModel.js";
 import type { TCreditStatus } from "../types/TCreditStatus.js";
 
 class Credit extends Model<InferAttributes<Credit>, InferCreationAttributes<Credit>> {
@@ -34,7 +34,7 @@ Credit.init(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       references: {
-        model: Invoice,
+        model: "invoices",
         key: "id",
       },
       onUpdate: "CASCADE",
@@ -44,7 +44,7 @@ Credit.init(
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
       references: {
-        model: Customer,
+        model: "customers",
         key: "id",
       },
       onUpdate: "CASCADE",
@@ -85,14 +85,5 @@ Credit.init(
     timestamps: true,
   }
 );
-
-Credit.belongsTo(Invoice, { foreignKey: "invoice_id", as: "invoice" });
-Invoice.hasOne(Credit, { foreignKey: "invoice_id", as: "credit" });
-
-Credit.belongsTo(Customer, { foreignKey: "customer_id", as: "customer" });
-Customer.hasMany(Credit, { foreignKey: "customer_id", as: "credits" });
-
-Credit.hasMany(CreditPayment, { foreignKey: "credit_id", as: "payments" });
-CreditPayment.belongsTo(Credit, { foreignKey: "credit_id", as: "credit" });
 
 export default Credit;

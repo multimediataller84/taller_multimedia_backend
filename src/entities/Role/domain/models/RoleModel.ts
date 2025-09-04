@@ -6,10 +6,11 @@ import {
   type CreationOptional,
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
+import type { TRolesTypes } from "../types/TRolesTypes.js";
 
 class Role extends Model<InferAttributes<Role>, InferCreationAttributes<Role>> {
   declare id: CreationOptional<number>;
-  declare name: string;
+  declare name: TRolesTypes;
   declare description: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -23,7 +24,7 @@ Role.init(
       primaryKey: true,
     },
     name: {
-      type: DataTypes.STRING(50),
+      type: DataTypes.ENUM("admin", "employee"),
       allowNull: false,
       unique: true,
     },

@@ -66,10 +66,7 @@ export class RoleService implements IRoleServices{
         if (exists) throw new Error("name already exists");
       }
 
-      await role.update({
-        ...(data.name !== undefined ? { name: data.name } : {}),
-        ...(data.description !== undefined ? { description: data.description } : {})
-      });
+      await role.update(data);
 
       return role;
     } catch (error) {
