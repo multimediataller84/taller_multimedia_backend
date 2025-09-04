@@ -8,7 +8,6 @@ export type TProduct = {
   tax_id: number;
   profit_margin: number;
   unit_price: number;
-  total: number;
   stock: number;
   state: TProductStatus;
 };

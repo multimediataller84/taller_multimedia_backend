@@ -20,7 +20,6 @@ class Product extends Model<
   declare tax_id: number;
   declare profit_margin: number;
   declare unit_price: number;
-  declare total: number;
   declare stock: number;
   declare state: CreationOptional<TProductStatus>;
   declare createdAt: CreationOptional<Date>;
@@ -61,10 +60,6 @@ Product.init(
       allowNull: false,
     },
     unit_price: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull: false,
-    },
-    total: {
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
     },
