@@ -25,11 +25,11 @@ router.use("/user", authMiddleware, usersRouter);
 router.use("/customer", authMiddleware, customerRouter);
 router.use("/invoice", authMiddleware, invoiceRouter);
 router.use("/invoice/detail", authMiddleware, invoiceDetailRouter);
-router.use("/product", productRouter);
-router.use("/product/tax", taxRouter);
-router.use("/category", categoryRouter);
+router.use("/product", authMiddleware, productRouter);
+router.use("/product/tax", authMiddleware, taxRouter);
+router.use("/category", authMiddleware, categoryRouter);
 router.use("/role", authMiddleware, rolesRouter);
 router.use("/credit", authMiddleware, creditRouter);
-router.use("/credit/payment", authMiddleware, creditPaymentRouter)
+router.use("/credit/payment", authMiddleware, creditPaymentRouter);
 
 export default router;
