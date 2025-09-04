@@ -1,5 +1,6 @@
+import type { TRolesTypes } from "./TRolesTypes.js";
+
 export type TRole = {
-  name: string;
+  name: TRolesTypes;
   description?: string;
 };
-

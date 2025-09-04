@@ -1,4 +1,4 @@
-import type { TConfig } from "../models/types/TConf.js";
+import type { TConfig } from "../domain/types/TConf.js";
 import { env } from "./validator.js";
 
 export const config: TConfig = {

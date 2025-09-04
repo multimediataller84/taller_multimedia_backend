@@ -6,13 +6,13 @@ import {
   type CreationOptional,
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
+import type Role from "../../../Role/domain/models/RoleModel.js";
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare id: CreationOptional<number>;
   declare name: string;
   declare last_name: string;
   declare username: string;
-  declare role: string;
   declare email: string;
   declare last_seen: CreationOptional<Date>;
   declare email_verified_at: CreationOptional<Date>;
@@ -20,7 +20,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare remember_token: CreationOptional<string>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
-  declare roleId: CreationOptional<number>;
+  declare role?: Role;
 }
 
 User.init(
@@ -42,15 +42,6 @@ User.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
-    }, 
-    role: {
-      type: DataTypes.STRING,
-      defaultValue: "user",
-    },
-    roleId: {
-    type: DataTypes.INTEGER.UNSIGNED,
-    allowNull: true,
-    field: "role_id"
     },
     email: {
       type: DataTypes.STRING,
