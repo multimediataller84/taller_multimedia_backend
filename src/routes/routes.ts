@@ -25,7 +25,7 @@ router.use("/user",  usersRouter);
 router.use("/customer", authMiddleware, customerRouter);
 router.use("/invoice", authMiddleware, invoiceRouter);
 router.use("/invoice/detail", authMiddleware, invoiceDetailRouter);
-router.use("/product", productRouter);
+router.use("/product", authMiddleware, productRouter);
 router.use("/product/tax", authMiddleware, taxRouter);
 router.use("/category", authMiddleware, categoryRouter);
 router.use("/role", authMiddleware, rolesRouter);
