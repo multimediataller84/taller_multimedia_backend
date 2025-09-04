@@ -9,7 +9,6 @@ export type TProductEndpoint = {
   tax_id: number;
   profit_margin: number;
   unit_price: number;
-  total: number;
   stock: number;
   state: TProductStatus;
   createdAt: Date;
