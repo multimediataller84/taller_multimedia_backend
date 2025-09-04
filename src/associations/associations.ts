@@ -44,3 +44,5 @@ export function setupAssociations() {
   Product.belongsTo(Tax, { foreignKey: "tax_id", as: "tax" });
   Tax.hasMany(Product, { foreignKey: "tax_id", as: "products" });  
 }
+
+
