@@ -102,8 +102,6 @@ post = async (data: TProduct): Promise<TProductEndpoint> => {
   }
 };
 
-
-
   patch = async (id: number, data: TProduct): Promise<TProductEndpoint> => {
     try {
       const product = await Product.findByPk(id);
