@@ -68,9 +68,8 @@ export class ProductService implements IProductServices {
 
 post = async (data: TProduct): Promise<TProductEndpoint> => {
   try {
-    const { sku, cabys_code, category_id, tax_id } = data;
+    const { sku, category_id, tax_id } = data;
 
-    if (!cabys_code) throw new Error("cabys_code is required");
     if (!tax_id) throw new Error("tax_id is required");
     if (!category_id) throw new Error("category_id is required");
 

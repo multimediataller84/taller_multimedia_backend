@@ -15,7 +15,6 @@ class Product extends Model<
   declare id: CreationOptional<number>;
   declare product_name: string;
   declare sku: string;
-  declare cabys_code: string;
   declare category_id: number;
   declare tax_id: number;
   declare profit_margin: number;
@@ -38,11 +37,6 @@ Product.init(
       allowNull: false,
     },
     sku: {
-      type: DataTypes.STRING(50),
-      allowNull: false,
-      unique: true,
-    },
-    cabys_code: {
       type: DataTypes.STRING(50),
       allowNull: false,
       unique: true,
