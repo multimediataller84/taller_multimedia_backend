@@ -8,7 +8,13 @@ export const sequelize = new Sequelize(
   {
     host: config.HOST,
     port: Number(config.DB_PORT),
-    dialect: "mysql",
+    dialect: "postgres",
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    },
     logging: console.log,
     pool: {
       max: 5,
