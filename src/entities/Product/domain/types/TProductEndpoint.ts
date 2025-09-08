@@ -4,7 +4,6 @@ export type TProductEndpoint = {
   id: number;
   product_name: string;
   sku: string;
-  cabys_code: string; 
   category_id:  number;
   tax_id: number;
   profit_margin: number;

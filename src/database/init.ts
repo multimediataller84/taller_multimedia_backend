@@ -6,7 +6,7 @@ export const initDB = async () => {
     await sequelize.authenticate();
     console.log("successfully connected");
     setupAssociations();
-    await sequelize.sync({ alter: true });
+    await sequelize.sync({ alter: false });
   } catch (err) {
     console.error("DB connection error:", err);
   }
