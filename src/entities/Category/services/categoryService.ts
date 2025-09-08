@@ -22,7 +22,7 @@ export class CategoryService implements ICategoryServices {
           {
             model: Product,
             as: "products",
-            attributes: ["product_name", "sku", "cabys_code", "stock"],
+            attributes: ["product_name", "sku", "stock"],
           },
         ],
       });
@@ -42,7 +42,7 @@ export class CategoryService implements ICategoryServices {
           {
             model: Product,
             as: "products",
-            attributes: ["product_name", "sku", "cabys_code", "stock"],
+            attributes: ["product_name", "sku", "stock"],
           },
         ],
       });
@@ -67,7 +67,7 @@ export class CategoryService implements ICategoryServices {
           {
             model: Product,
             as: "products",
-            attributes: ["product_name", "sku", "cabys_code", "stock"],
+            attributes: ["product_name", "sku", "stock"],
           },
         ],
       });
@@ -89,7 +89,7 @@ export class CategoryService implements ICategoryServices {
           {
             model: Product,
             as: "products",
-            attributes: ["product_name", "sku", "cabys_code", "stock"],
+            attributes: ["product_name", "sku", "stock"],
           },
         ],
       });
@@ -107,7 +107,7 @@ export class CategoryService implements ICategoryServices {
           {
             model: Product,
             as: "products",
-            attributes: ["product_name", "sku", "cabys_code", "stock"],
+            attributes: ["product_name", "sku", "stock"],
           },
         ],
       });
