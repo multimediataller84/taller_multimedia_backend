@@ -3,7 +3,7 @@ import type { TTax } from "../domain/types/TTax.js";
 import type { TTaxEndpoint } from "../domain/types/TTaxEndpoint.js";
 import { TaxService } from "../services/taxService.js";
 
-export class TaxRepository implements ITaxRepository{
+export class TaxRepository implements ITaxRepository {
   private static instance: TaxRepository;
   private readonly taxService = TaxService.getInstance();
 
@@ -38,7 +38,6 @@ export class TaxRepository implements ITaxRepository{
     }
   };
 
-
   post = async (data: TTax): Promise<TTaxEndpoint> => {
     try {
       const role = await this.taxService.post(data);
@@ -72,6 +71,17 @@ export class TaxRepository implements ITaxRepository{
       return role;
     } catch (error) {
       throw error;
+    }
+  };
+
+  updateAll = async (file: Express.Multer.File): Promise<any> => {
+    try {
+      const role = await this.taxService.updateAll(file);
+      if (!role) {
+        throw new Error("error updating all tax sources");
+      }
+    } catch (error) {
+      throw error
     }
   };
 }

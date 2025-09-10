@@ -12,6 +12,7 @@ import categoryRouter from "../entities/Category/routes/categoryRoutes.js";
 import creditRouter from "../entities/Credit/routes/creditRoutes.js";
 import creditPaymentRouter from "../entities/CreditPayment/routes/creditPaymentRoutes.js";
 import taxRouter from "../entities/Tax/routes/taxRoutes.js";
+import { verifyRole } from "../middlewares/role.js";
 
 const router = express.Router();
 
@@ -21,16 +22,15 @@ router.get("/openapi.json", (req, res) => {
 });
 
 router.use("/auth", authRouter);
-router.use("/user", authMiddleware, usersRouter);
-router.use("/customer", authMiddleware, customerRouter);
-router.use("/invoice", authMiddleware, invoiceRouter);
-router.use("/invoice/detail", authMiddleware, invoiceDetailRouter);
-router.use("/product", authMiddleware, productRouter);
-router.use("/product/tax", authMiddleware, taxRouter);
-router.use("/category", authMiddleware ,categoryRouter);
-router.use("/role", authMiddleware, rolesRouter);
-router.use("/credit", authMiddleware, creditRouter);
-router.use("/credit/payment", authMiddleware, creditPaymentRouter);
-
+router.use("/user", authMiddleware, verifyRole("employee"), usersRouter);
+router.use("/customer", authMiddleware, verifyRole("employee"), customerRouter);
+router.use("/invoice", authMiddleware, verifyRole("employee"), invoiceRouter);
+router.use("/invoice/detail", authMiddleware, verifyRole("employee"),invoiceDetailRouter);
+router.use("/product", verifyRole("employee"), productRouter);
+router.use("/product/tax", verifyRole("employee"), taxRouter);
+router.use("/category", authMiddleware, verifyRole("employee"), categoryRouter);
+router.use("/role", authMiddleware, verifyRole("employee"), rolesRouter);
+router.use("/credit", authMiddleware, verifyRole("employee"), creditRouter);
+router.use("/credit/payment", authMiddleware, verifyRole("employee"), creditPaymentRouter);
 
 export default router;
