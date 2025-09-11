@@ -7,4 +7,5 @@ export interface ITaxServices {
   post: (data: TTax) => Promise<TTaxEndpoint>;
   delete: (id: number) => Promise<TTaxEndpoint>;
   patch: (id: number, data: TTax) => Promise<TTaxEndpoint>;
+  updateAll: (file: Express.Multer.File) => Promise<any>;
 }
