@@ -1,4 +1,6 @@
+import type { GetAllOptions } from "../../../domain/types/TGetAllOptions.js";
 import type { ITaxRepository } from "../domain/interfaces/ITaxRepository.js";
+import type { TGetAllEnpoint } from "../domain/types/TGetAllEndpoint.js";
 import type { TTax } from "../domain/types/TTax.js";
 import type { TTaxEndpoint } from "../domain/types/TTaxEndpoint.js";
 import { TaxService } from "../services/taxService.js";
@@ -26,9 +28,9 @@ export class TaxRepository implements ITaxRepository {
     }
   };
 
-  getAll = async (): Promise<TTaxEndpoint[]> => {
+  getAll = async (options: GetAllOptions): Promise<TGetAllEnpoint> => {
     try {
-      const roles = await this.taxService.getAll();
+      const roles = await this.taxService.getAll(options);
       if (!roles) {
         throw new Error("sources not found");
       }
