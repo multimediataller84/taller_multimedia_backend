@@ -64,4 +64,14 @@ export class TaxController implements ITaxController {
       res.status(404).json({ error: error.message });
     }
   };
+
+  updateAll = async (req: Request, res: Response): Promise<void> => {
+    try {
+      if (!req.file) throw "file dont exist";
+      const result = await this.useCases.updateAll.execute(req.file);
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  };
 }

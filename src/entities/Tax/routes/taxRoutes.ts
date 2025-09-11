@@ -1,8 +1,12 @@
 import express from "express";
+import multer from "multer";
 import { TaxController } from "../controllers/taxController.js";
+import { verifyRole } from "../../../middlewares/role.js";
 
 const taxController = TaxController.getInstance();
 const taxRouter = express.Router();
+const storage = multer.memoryStorage();
+export const upload = multer({ storage });
 
 /**
  * @openapi
@@ -114,6 +118,40 @@ taxRouter.post("/", taxController.post);
  *         description: Error updating tax
  */
 taxRouter.patch("/:id", taxController.patch);
+
+/**
+ * @openapi
+ * /tax/update/all:
+ *   patch:
+ *     summary: Update all taxes using an Excel file
+ *     description: Only administrators can upload an Excel file to update the tax table in batches.
+ *     tags:
+ *       - Tax
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         multipart/form-data:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - file
+ *             properties:
+ *               file:
+ *                 type: string
+ *                 format: binary
+ *     responses:
+ *       200:
+ *         description: Update successful.
+ *       400:
+ *         description: Missing or invalid file.
+ *       401:
+ *         description: Unauthorized (admin role required).
+ *       404:
+ *         description: Error in processing.
+ */
+taxRouter.patch("/update/all", verifyRole("admin"), upload.single("file"), taxController.updateAll);
 
 /**
  * @openapi
