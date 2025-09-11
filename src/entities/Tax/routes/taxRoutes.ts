@@ -1,12 +1,9 @@
 import express from "express";
-import multer from "multer";
 import { TaxController } from "../controllers/taxController.js";
 import { verifyRole } from "../../../middlewares/role.js";
 
 const taxController = TaxController.getInstance();
 const taxRouter = express.Router();
-const storage = multer.memoryStorage();
-export const upload = multer({ storage });
 
 /**
  * @openapi
