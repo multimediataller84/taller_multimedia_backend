@@ -1,6 +1,6 @@
 import { TaxRepository } from "../repository/taxRepository.js";
 import { GetTaxUseCase } from "../domain/useCases/getTaxUseCase.js";
-import { GetAllTaxUseCase } from "../domain/useCases/getTaxRoleUseCase.js";
+import { GetAllTaxUseCase } from "../domain/useCases/getAllTaxUseCase.js";
 import { PostTaxUseCase } from "../domain/useCases/postTaxUseCase.js";
 import { PatchTaxUseCase } from "../domain/useCases/patchTaxUseCase.js";
 import { DeleteTaxUseCase } from "../domain/useCases/deleteTaxUseCase.js";

@@ -1,6 +1,5 @@
 import express from "express";
 import { TaxController } from "../controllers/taxController.js";
-import { verifyRole } from "../../../middlewares/role.js";
 
 const taxController = TaxController.getInstance();
 const taxRouter = express.Router();
@@ -31,7 +30,7 @@ const taxRouter = express.Router();
  *       404:
  *         description: No taxes found
  */
-taxRouter.get("/all", taxController.getAll);
+taxRouter.post("/all", taxController.getAll);
 
 /**
  * @openapi
