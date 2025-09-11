@@ -121,40 +121,6 @@ taxRouter.patch("/:id", taxController.patch);
 
 /**
  * @openapi
- * /tax/update/all:
- *   patch:
- *     summary: Update all taxes using an Excel file
- *     description: Only administrators can upload an Excel file to update the tax table in batches.
- *     tags:
- *       - Tax
- *     security:
- *       - bearerAuth: []
- *     requestBody:
- *       required: true
- *       content:
- *         multipart/form-data:
- *           schema:
- *             type: object
- *             required:
- *               - file
- *             properties:
- *               file:
- *                 type: string
- *                 format: binary
- *     responses:
- *       200:
- *         description: Update successful.
- *       400:
- *         description: Missing or invalid file.
- *       401:
- *         description: Unauthorized (admin role required).
- *       404:
- *         description: Error in processing.
- */
-taxRouter.patch("/update/all", verifyRole("admin"), upload.single("file"), taxController.updateAll);
-
-/**
- * @openapi
  * /tax/{id}:
  *   delete:
  *     summary: Delete a tax by ID
