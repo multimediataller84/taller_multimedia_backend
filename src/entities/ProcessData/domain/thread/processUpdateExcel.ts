@@ -1,11 +1,11 @@
 import { parentPort, workerData } from "worker_threads";
 import XLSX from "xlsx";
 import { sequelize } from "../../../../database/connection.js";
-import Tax from "../models/TaxModel.js";
+import Tax from "../../../Tax/domain/models/TaxModel.js";
 import { parseBoolean } from "../../utils/parseDouble.js";
-import type { TTax } from "../types/TTax.js";
+import { type TTax } from "../../../Tax/domain/types/TTax.js";
 
-async function procesarExcel(buffer: Buffer): Promise<void> {
+async function processUpdateExcel(buffer: Buffer): Promise<void> {
   try {
     const workbook = XLSX.read(buffer, { type: "buffer" });
 
@@ -41,8 +41,32 @@ async function procesarExcel(buffer: Buffer): Promise<void> {
         description = description.substring(0, 512);
       }
 
+      let category = row.category ? String(row.category) : null;
+      if (category && category.length > 512) {
+        truncated = true;
+        truncatedRows.push({
+          row,
+          field: "category",
+          original: category,
+        });
+        category = category.substring(0, 512);
+      }
+
+      let status = row.status ? String(row.status) : "active";
+      if (status && status.length > 512) {
+        truncated = true;
+        truncatedRows.push({
+          row,
+          field: "status",
+          original: status,
+        });
+        status = status.substring(0, 512);
+      }
+
       await Tax.upsert({
         name,
+        category,
+        status,
         description,
         percentage: parseFloat(String(row.percentage)),
         exempt: parseBoolean(row.exempt),
@@ -59,4 +83,4 @@ async function procesarExcel(buffer: Buffer): Promise<void> {
   }
 }
 
-procesarExcel(workerData.buffer);
+processUpdateExcel(workerData.buffer);

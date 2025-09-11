@@ -1,13 +1,8 @@
-import path from "path";
 import type { ITaxServices } from "../domain/interfaces/ITaxServices.js";
 import Tax from "../domain/models/TaxModel.js";
 import type { TTax } from "../domain/types/TTax.js";
 import type { TTaxEndpoint } from "../domain/types/TTaxEndpoint.js";
-import { Worker } from "worker_threads";
-import { fileURLToPath } from "url";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 export class TaxService implements ITaxServices {
   private static instance: TaxService;
 
@@ -79,24 +74,5 @@ export class TaxService implements ITaxServices {
     } catch (error) {
       throw error;
     }
-  };
-
-  updateAll = async (file: Express.Multer.File): Promise<any> => {
-    return new Promise((resolve, reject) => {
-      const worker = new Worker(
-        path.resolve(__dirname, "../domain/thread/thread.js"),
-        { workerData: { buffer: file.buffer, filename: file.originalname } }
-      );
-
-      worker.on("message", (msg) => {
-        if (msg.success) resolve(msg);
-        else reject(new Error(msg.error));
-      });
-
-      worker.on("error", (err) => reject(err));
-      worker.on("exit", (code) => {
-        if (code !== 0) reject(new Error(`worker exited with code ${code}`));
-      });
-    });
   };
 }

@@ -73,15 +73,4 @@ export class TaxRepository implements ITaxRepository {
       throw error;
     }
   };
-
-  updateAll = async (file: Express.Multer.File): Promise<any> => {
-    try {
-      const role = await this.taxService.updateAll(file);
-      if (!role) {
-        throw new Error("error updating all tax sources");
-      }
-    } catch (error) {
-      throw error
-    }
-  };
 }
