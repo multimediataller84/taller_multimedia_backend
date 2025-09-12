@@ -8,5 +8,5 @@ export interface ITaxRepository {
   getAll: (options: GetAllOptions) => Promise<TGetAllEnpoint>;
   post: (data: TTax) => Promise<TTaxEndpoint>;
   delete: (id: number) => Promise<TTaxEndpoint>;
-  patch: (id: number, data: TTax) => Promise<TTaxEndpoint>;
+  patch: (data: TTax) => Promise<TTaxEndpoint>;
 }

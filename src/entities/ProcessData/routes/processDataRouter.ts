@@ -41,4 +41,6 @@ export const upload = multer({ storage });
  */
 processDataRouter.patch("/update/all", upload.single("file"), processDataController.updateAll);
 
+processDataRouter.post("/process/exel", upload.single("file"), processDataController.processExel);
+
 export default processDataRouter;

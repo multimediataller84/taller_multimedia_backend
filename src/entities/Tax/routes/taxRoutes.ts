@@ -113,7 +113,7 @@ taxRouter.post("/", taxController.post);
  *       404:
  *         description: Error updating tax
  */
-taxRouter.patch("/:id", taxController.patch);
+taxRouter.patch("/", taxController.patch);
 
 /**
  * @openapi

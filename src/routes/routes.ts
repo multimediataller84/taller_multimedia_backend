@@ -35,8 +35,8 @@ router.use("/category", authMiddleware, verifyRole("employee"), categoryRouter);
 router.use("/role", authMiddleware, verifyRole("employee"), rolesRouter);
 router.use("/credit", authMiddleware, verifyRole("employee"), creditRouter);
 router.use("/credit/payment", authMiddleware, verifyRole("employee"), creditPaymentRouter);
-router.use("/credit-status", authMiddleware, verifyRole("employee"), creditStatusRouter);
-router.use("/data/process", processDataRouter);
-router.use("/payment-method", authMiddleware, verifyRole("employee"), paymentMethodRouter);
+router.use("/admin/data", processDataRouter);
+router.use("/credit/status", authMiddleware, verifyRole("employee"), creditStatusRouter);
+router.use("/payment/method", authMiddleware, verifyRole("employee"), paymentMethodRouter);
 
 export default router;

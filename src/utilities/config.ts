@@ -14,4 +14,5 @@ export const config: TConfig = {
   PORT: env.PORT,
   URL: env.URL,
   DB_PORT: env.DB_PORT,
+  PY_API: env.PY_API
 };
