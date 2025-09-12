@@ -2,7 +2,10 @@ import path from "path";
 import type { IProcessDataServices } from "../domain/interfaces/IProcessDataServices.js";
 import { Worker } from "worker_threads";
 import { fileURLToPath } from "url";
-
+import axios from "axios";
+import FormData from "form-data";
+import type { TStatus } from "../domain/types/TStatus.js";
+import { config } from "../../../utilities/config.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
@@ -33,5 +36,26 @@ export class ProcessDataService implements IProcessDataServices {
         if (code !== 0) reject(new Error(`worker exited with code ${code}`));
       });
     });
+  };
+
+  processExel = async (file: Express.Multer.File): Promise<TStatus> => {
+    try {
+      const formData = new FormData();
+      formData.append("file", file.buffer, file.originalname);
+
+      const response = await axios.post<TStatus>(
+        `${config.PY_API}/api/process/excel`,
+        formData,
+        {
+          headers: {
+            ...formData.getHeaders(),
+          },
+        }
+      );
+      return response.data
+      
+    } catch (e) {
+      throw new Error("error at " + e);
+    }
   };
 }

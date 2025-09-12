@@ -33,6 +33,6 @@ router.use("/category", authMiddleware, verifyRole("employee"), categoryRouter);
 router.use("/role", authMiddleware, verifyRole("employee"), rolesRouter);
 router.use("/credit", authMiddleware, verifyRole("employee"), creditRouter);
 router.use("/credit/payment", authMiddleware, verifyRole("employee"), creditPaymentRouter);
-router.use("/data/process", processDataRouter);
+router.use("/admin/data", processDataRouter);
 
 export default router;

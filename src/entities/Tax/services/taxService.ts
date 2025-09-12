@@ -72,9 +72,10 @@ export class TaxService implements ITaxServices {
     }
   };
 
-  patch = async (id: number, data: TTax): Promise<TTaxEndpoint> => {
+  patch = async (data: TTax): Promise<TTaxEndpoint> => {
     try {
-      const tax = await Tax.findByPk(id);
+      const { name } = data;
+      const tax = await Tax.findOne({ where: { name } });
       if (!tax) throw new Error("Tax not found");
 
       await tax.update(data);
