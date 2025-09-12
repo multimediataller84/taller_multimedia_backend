@@ -8,6 +8,7 @@ import User from "../entities/User/domain/models/UserModel.js";
 import Category from "../entities/Category/domain/models/CategoryModel.js";
 import Tax from "../entities/Tax/domain/models/TaxModel.js";
 import Product from "../entities/Product/domain/models/ProductModel.js";
+import CreditStatus from "../entities/CreditStatus/domain/models/CreditStatusModel.js";
 
 export function setupAssociations() {
   // Credit <-> Invoice (Revisar)
@@ -30,6 +31,16 @@ export function setupAssociations() {
   CreditPayment.belongsTo(PaymentMethod, {
     foreignKey: "payment_method_id",
     as: "paymentMethod",
+  });
+
+  // Credit <-> CreditStatus terminada
+  Credit.belongsTo(CreditStatus, {
+    foreignKey: "credit_status_id",
+    as: "status",
+  });
+  CreditStatus.hasMany(Credit, {
+    foreignKey: "credit_status_id",
+    as: "credits",
   });
 
   // Role <->  User arreglada terminada
