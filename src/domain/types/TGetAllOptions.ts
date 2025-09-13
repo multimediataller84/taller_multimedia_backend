@@ -1,4 +1,4 @@
-export type GetAllOptions = {
+export type TGetAllOptions = {
   description?: string;
   limit?: number;
   offset?: number;
