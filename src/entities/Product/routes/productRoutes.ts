@@ -30,7 +30,7 @@ const productRouter = express.Router();
  *       404:
  *         description: No products found
  */
-productRouter.get("/all", productController.getAll);
+productRouter.post("/all", productController.getAll);
 
 /**
  * @openapi

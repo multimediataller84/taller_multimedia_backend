@@ -1,4 +1,6 @@
+import type { TGetAllOptions } from "../../../domain/types/TGetAllOptions.js";
 import type { IProductRepository } from "../domain/interfaces/IProductRepository.js";
+import type { TGetAllEnpoint } from "../domain/types/TGetAllOptions.js";
 import type { TProduct } from "../domain/types/TProduct.js";
 import type { TProductEndpoint } from "../domain/types/TProductEndpoint.js";
 import { ProductService } from "../services/productService.js";
@@ -26,10 +28,10 @@ export class ProductRepository implements IProductRepository {
     }
   };
 
-  getAll = async (): Promise<TProductEndpoint[]> => {
+  getAll = async (options: TGetAllOptions): Promise<TGetAllEnpoint> => {
     try {
-      const product = await this.productService.getAll();
-      if (product.length === 0) {
+      const product = await this.productService.getAll(options);
+      if (product.data.length === 0) {
         throw new Error("sources not found");
       }
       return product;

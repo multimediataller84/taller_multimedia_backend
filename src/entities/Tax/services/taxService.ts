@@ -1,4 +1,4 @@
-import type { GetAllOptions } from "../../../domain/types/TGetAllOptions.js";
+import type { TGetAllOptions } from "../../../domain/types/TGetAllOptions.js";
 import type { ITaxServices } from "../domain/interfaces/ITaxServices.js";
 import Tax from "../domain/models/TaxModel.js";
 import type { TGetAllEnpoint } from "../domain/types/TGetAllEndpoint.js";
@@ -28,7 +28,7 @@ export class TaxService implements ITaxServices {
     }
   };
 
-  getAll = async (options: GetAllOptions): Promise<TGetAllEnpoint> => {
+  getAll = async (options: TGetAllOptions): Promise<TGetAllEnpoint> => {
     try {
       const {
         description,

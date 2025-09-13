@@ -33,10 +33,10 @@ export function setupAssociations() {
     as: "paymentMethod",
   });
 
-  // Credit <-> CreditStatus terminada
+  // Credit <-> CreditStatus terminada Revisar
   Credit.belongsTo(CreditStatus, {
     foreignKey: "credit_status_id",
-    as: "status",
+    as: "status_id",
   });
   CreditStatus.hasMany(Credit, {
     foreignKey: "credit_status_id",

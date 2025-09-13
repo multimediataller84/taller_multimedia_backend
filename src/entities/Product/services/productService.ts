@@ -4,6 +4,9 @@ import type { TProductEndpoint } from "../domain/types/TProductEndpoint.js";
 import type { TProduct } from "../domain/types/TProduct.js";
 import Tax from "../../Tax/domain/models/TaxModel.js";
 import Category from "../../Category/domain/models/CategoryModel.js";
+import { Op } from "sequelize";
+import type { TGetAllOptions } from "../../../domain/types/TGetAllOptions.js";
+import type { TGetAllEnpoint } from "../domain/types/TGetAllOptions.js";
 
 export class ProductService implements IProductServices {
   private static instance: ProductService;
@@ -27,8 +30,8 @@ export class ProductService implements IProductServices {
           {
             model: Category,
             as: "category",
-            attributes: ["name", "description"]
-          }
+            attributes: ["name", "description"],
+          },
         ],
       });
       if (!product) {
@@ -40,9 +43,27 @@ export class ProductService implements IProductServices {
     }
   };
 
-  getAll = async (): Promise<TProductEndpoint[]> => {
+  getAll = async (options: TGetAllOptions): Promise<TGetAllEnpoint> => {
     try {
-      const invoice = await Product.findAll({
+      const {
+        description,
+        limit = 50,
+        offset = 0,
+        orderBy = "name",
+        orderDirection = "ASC",
+      } = options;
+
+      const whereClause = description
+        ? { description: { [Op.iLike]: `%${description}%` } }
+        : {};
+
+      const total = await Product.count({ where: whereClause });
+
+      const data = await Product.findAll({
+        where: whereClause,
+        limit,
+        offset,
+        order: [[orderBy, orderDirection]],
         include: [
           {
             model: Tax,
@@ -52,54 +73,62 @@ export class ProductService implements IProductServices {
           {
             model: Category,
             as: "category",
-            attributes: ["name", "description"]
-          }
+            attributes: ["name", "description"],
+          },
         ],
       });
 
-      if (invoice.length === 0) {
+      if (data.length === 0) {
         throw new Error("product not found");
       }
-      return invoice;
+      return { data, total };
     } catch (error) {
       throw error;
     }
   };
 
-post = async (data: TProduct): Promise<TProductEndpoint> => {
-  try {
-    const { sku, category_id, tax_id } = data;
+  post = async (data: TProduct): Promise<TProductEndpoint> => {
+    try {
+      const { sku, category_id, tax_id } = data;
 
-    if (!tax_id) throw new Error("tax_id is required");
-    if (!category_id) throw new Error("category_id is required");
+      if (!tax_id) throw new Error("tax_id is required");
+      if (!category_id) throw new Error("category_id is required");
 
-    const exists = await Product.findOne({ where: { sku } });
-    if (exists) throw new Error("product already exists");
+      const exists = await Product.findOne({ where: { sku } });
+      if (exists) throw new Error("product already exists");
 
-    const cat = await Category.findByPk(Number(category_id));
-    if (!cat) throw new Error("category not found");
+      const cat = await Category.findByPk(Number(category_id));
+      if (!cat) throw new Error("category not found");
 
-    const tax = await Tax.findByPk(Number(tax_id));
-    if (!tax) throw new Error("tax not found");
+      const tax = await Tax.findByPk(Number(tax_id));
+      if (!tax) throw new Error("tax not found");
 
-    const created = await Product.create({
-      ...data,
-      category_id: Number(category_id),
-      tax_id: Number(tax_id),
-    });
+      const created = await Product.create({
+        ...data,
+        category_id: Number(category_id),
+        tax_id: Number(tax_id),
+      });
 
-    const product = await Product.findByPk(created.id, {
-      include: [
-        { model: Tax, as: "tax", attributes: ["name", "percentage", "description"] },
-        { model: Category, as: "category", attributes: ["name", "description"] },
-      ],
-    });
+      const product = await Product.findByPk(created.id, {
+        include: [
+          {
+            model: Tax,
+            as: "tax",
+            attributes: ["name", "percentage", "description"],
+          },
+          {
+            model: Category,
+            as: "category",
+            attributes: ["name", "description"],
+          },
+        ],
+      });
 
-    return product ?? created;
-  } catch (error) {
-    throw error;
-  }
-};
+      return product ?? created;
+    } catch (error) {
+      throw error;
+    }
+  };
 
   patch = async (id: number, data: TProduct): Promise<TProductEndpoint> => {
     try {
@@ -119,8 +148,8 @@ post = async (data: TProduct): Promise<TProductEndpoint> => {
           {
             model: Category,
             as: "category",
-            attributes: ["name", "description"]
-          }
+            attributes: ["name", "description"],
+          },
         ],
       });
 
@@ -142,8 +171,8 @@ post = async (data: TProduct): Promise<TProductEndpoint> => {
           {
             model: Category,
             as: "category",
-            attributes: ["name", "description"]
-          }
+            attributes: ["name", "description"],
+          },
         ],
       });
 
