@@ -52,13 +52,16 @@ export class UserService implements IUserServices {
 
   post = async (data: TUser): Promise<TUserEndpoint> => {
     try {
-      const { email, password, username } = data;
+      const { email, password, username, role_id } = data;
 
       const exists = await User.findOne({ where: { email } });
       if (exists) throw new Error("Email already exists");
 
       const existsUsername = await User.findOne({ where: { username } });
       if (existsUsername) throw new Error("Username already exists");
+
+      const role_exist = await Role.findByPk(role_id);
+      if (!role_exist) throw new Error("Role dont exists on role table");
 
       const hashed = await bcrypt.hash(password, 10);
       data.password = hashed;
