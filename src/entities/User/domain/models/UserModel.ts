@@ -11,9 +11,9 @@ import type Role from "../../../Role/domain/models/RoleModel.js";
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare id: CreationOptional<number>;
   declare name: string;
-  declare last_name: string;
+  declare last_name: string | null;
   declare username: string;
-  declare email: string;
+  declare email: string | null;
   declare last_seen: CreationOptional<Date>;
   declare email_verified_at: CreationOptional<Date>;
   declare password: string;
@@ -37,7 +37,7 @@ User.init(
     },
     last_name: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
     },
     username: {
       type: DataTypes.STRING,
@@ -46,7 +46,7 @@ User.init(
     },
     email: {
       type: DataTypes.STRING,
-      allowNull: false,
+      allowNull: true,
       unique: true,
     },
     last_seen: {

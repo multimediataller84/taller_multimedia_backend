@@ -32,7 +32,7 @@ router.use("/invoice/detail", authMiddleware, verifyRole("employee"), invoiceDet
 router.use("/product", authMiddleware, verifyRole("employee"), productRouter);
 router.use("/product/tax", authMiddleware, verifyRole("employee"), taxRouter);
 router.use("/category", authMiddleware, verifyRole("employee"), categoryRouter);
-router.use("/role", authMiddleware, verifyRole("employee"), rolesRouter);
+router.use("/role", rolesRouter);
 router.use("/credit", authMiddleware, verifyRole("employee"), creditRouter);
 router.use("/credit/payment", authMiddleware, verifyRole("employee"), creditPaymentRouter);
 router.use("/admin/data", processDataRouter);
