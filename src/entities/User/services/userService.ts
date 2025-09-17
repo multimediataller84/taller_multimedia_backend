@@ -52,10 +52,7 @@ export class UserService implements IUserServices {
 
   post = async (data: TUser): Promise<TUserEndpoint> => {
     try {
-      const { email, password, username, role_id } = data;
-
-      const exists = await User.findOne({ where: { email } });
-      if (exists) throw new Error("Email already exists");
+      const { password, username, role_id } = data;
 
       const existsUsername = await User.findOne({ where: { username } });
       if (existsUsername) throw new Error("Username already exists");
@@ -110,9 +107,9 @@ export class UserService implements IUserServices {
 
   login = async (data: TLogin): Promise<TPayload> => {
     try {
-      const { email, password } = data;
+      const { username, password } = data;
       const user = await User.findOne({
-        where: { email },
+        where: { username },
         include: [
           {
             model: Role,
@@ -122,7 +119,7 @@ export class UserService implements IUserServices {
         ],
       });
 
-      console.log("[login] email:", email, "user found?", !!user);
+      console.log("[login] username:", username, "user found?", !!user);
 
       if (!user) {
         throw new Error("Invalid credentials");

@@ -1,9 +1,9 @@
 export type TUserEndpoint = {
   id: number;
   name: string;
-  last_name: string;
+  last_name: string | null;
   username: string;
-  email: string;
+  email: string | null;
   role_id: number;
   last_seen: Date | null;
   email_verified_at: Date | null;
