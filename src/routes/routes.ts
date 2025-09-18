@@ -29,7 +29,7 @@ router.use("/user", usersRouter);
 router.use("/customer", authMiddleware, verifyRole("employee"), customerRouter);
 router.use("/invoice", authMiddleware, verifyRole("employee"), invoiceRouter);
 router.use("/invoice/detail", authMiddleware, verifyRole("employee"), invoiceDetailRouter);
-router.use("/product", authMiddleware, verifyRole("employee"), productRouter);
+router.use("/product", productRouter);
 router.use("/product/tax", authMiddleware, verifyRole("employee"), taxRouter);
 router.use("/category", authMiddleware, verifyRole("employee"), categoryRouter);
 router.use("/role", rolesRouter);
