@@ -54,7 +54,7 @@ export class ProductService implements IProductServices {
       } = options;
 
       const whereClause = description
-        ? { description: { [Op.iLike]: `%${description}%` } }
+        ? { product_name: { [Op.iLike]: `%${description}%` } }
         : {};
 
       const total = await Product.count({ where: whereClause });
