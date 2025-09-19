@@ -49,7 +49,7 @@ export class ProductService implements IProductServices {
         description,
         limit = 50,
         offset = 0,
-        orderBy = "name",
+        orderBy = "product_name",
         orderDirection = "ASC",
       } = options;
 
