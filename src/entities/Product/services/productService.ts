@@ -47,9 +47,9 @@ export class ProductService implements IProductServices {
     try {
       const {
         description,
-        limit = 50,
+        limit = 55,
         offset = 0,
-        orderBy = "name",
+        orderBy = "product_name",
         orderDirection = "ASC",
       } = options;
 
