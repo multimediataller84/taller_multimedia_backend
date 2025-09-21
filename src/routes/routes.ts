@@ -30,7 +30,7 @@ router.use("/customer", authMiddleware, verifyRole("employee"), customerRouter);
 router.use("/invoice", authMiddleware, verifyRole("employee"), invoiceRouter);
 router.use("/invoice/detail", authMiddleware, verifyRole("employee"), invoiceDetailRouter);
 router.use("/product", productRouter);
-router.use("/product/tax",  taxRouter);
+router.use("/product/tax", taxRouter);
 router.use("/category", categoryRouter);
 router.use("/role", rolesRouter);
 router.use("/credit", authMiddleware, verifyRole("employee"), creditRouter);
