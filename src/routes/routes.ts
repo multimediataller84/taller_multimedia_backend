@@ -25,18 +25,18 @@ router.get("/openapi.json", (req, res) => {
 });
 
 router.use("/auth", authRouter);
-router.use("/user", usersRouter);
-router.use("/customer", customerRouter);
-router.use("/invoice", authMiddleware, verifyRole("employee"), invoiceRouter);
-router.use("/invoice/detail", authMiddleware, verifyRole("employee"), invoiceDetailRouter);
-router.use("/product", productRouter);
-router.use("/product/tax", taxRouter);
-router.use("/category", categoryRouter);
-router.use("/role", rolesRouter);
-router.use("/credit", authMiddleware, verifyRole("employee"), creditRouter);
-router.use("/credit/payment", authMiddleware, verifyRole("employee"), creditPaymentRouter);
+router.use("/user", authMiddleware, verifyRole(["admin", "employee"]), usersRouter);
+router.use("/customer", authMiddleware, verifyRole(["admin", "employee"]), customerRouter);
+router.use("/invoice", authMiddleware, verifyRole(["admin", "employee"]), invoiceRouter);
+router.use("/invoice/detail", authMiddleware, verifyRole(["admin", "employee"]), invoiceDetailRouter);
+router.use("/product", authMiddleware, verifyRole(["admin", "employee"]), productRouter);
+router.use("/product/tax", authMiddleware, verifyRole(["admin", "employee"]), taxRouter);
+router.use("/category", authMiddleware, verifyRole(["admin", "employee"]), categoryRouter);
+router.use("/role", authMiddleware, verifyRole(["admin", "employee"]), rolesRouter);
+router.use("/credit", authMiddleware, verifyRole(["admin", "employee"]), creditRouter);
+router.use("/credit/payment", authMiddleware, verifyRole(["admin", "employee"]), creditPaymentRouter);
 router.use("/admin/data", processDataRouter);
-router.use("/credit/status", authMiddleware, verifyRole("employee"), creditStatusRouter);
-router.use("/payment/method", authMiddleware, verifyRole("employee"), paymentMethodRouter);
+router.use("/credit/status", authMiddleware, verifyRole(["admin", "employee"]), creditStatusRouter);
+router.use("/payment/method", authMiddleware, verifyRole(["admin", "employee"]), paymentMethodRouter);
 
 export default router;
