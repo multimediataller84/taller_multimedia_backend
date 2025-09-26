@@ -2,13 +2,13 @@ import Credit from "../entities/Credit/domain/models/CreditModel.js";
 import CreditPayment from "../entities/CreditPayment/domain/models/CreditPaymentModel.js";
 import Customer from "../entities/CustomerAccount/domain/models/CustomerModel.js";
 import Invoice from "../entities/Invoice/domain/models/InvoiceModel.js";
-import PaymentMethod from "../domain/models/PaymentMethodModel .js";
 import Role from "../entities/Role/domain/models/RoleModel.js";
 import User from "../entities/User/domain/models/UserModel.js";
 import Category from "../entities/Category/domain/models/CategoryModel.js";
 import Tax from "../entities/Tax/domain/models/TaxModel.js";
 import Product from "../entities/Product/domain/models/ProductModel.js";
 import CreditStatus from "../entities/CreditStatus/domain/models/CreditStatusModel.js";
+import InvoiceProducts from "../entities/Invoice/domain/models/InvoiceProducts.js";
 
 export function setupAssociations() {
   // Credit <-> Invoice (Revisar)
@@ -22,16 +22,6 @@ export function setupAssociations() {
   // Credit <-> CreditPayment (Revisar)
   Credit.hasMany(CreditPayment, { foreignKey: "credit_id", as: "payments" });
   CreditPayment.belongsTo(Credit, { foreignKey: "credit_id", as: "credit" });
-
-  // PaymentMethod <-> CreditPayment (Revisar)
-  PaymentMethod.hasMany(CreditPayment, {
-    foreignKey: "payment_method_id",
-    as: "creditPayments",
-  });
-  CreditPayment.belongsTo(PaymentMethod, {
-    foreignKey: "payment_method_id",
-    as: "paymentMethod",
-  });
 
   // Credit <-> CreditStatus terminada Revisar
   Credit.belongsTo(CreditStatus, {
@@ -47,13 +37,29 @@ export function setupAssociations() {
   Role.hasMany(User, { foreignKey: "role_id", as: "users" });
   User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
 
-  // Product -> Category arreglada y terminada 
+  // Product -> Category arreglada y terminada
   Product.belongsTo(Category, { foreignKey: "category_id", as: "category" });
   Category.hasMany(Product, { foreignKey: "category_id", as: "products" });
 
-   // Product -> Tax arreglada y terminada
+  // Product -> Tax arreglada y terminada
   Product.belongsTo(Tax, { foreignKey: "tax_id", as: "tax" });
-  Tax.hasMany(Product, { foreignKey: "tax_id", as: "products" });  
+  Tax.hasMany(Product, { foreignKey: "tax_id", as: "products" });
+
+  //Invoice -> Product, tabla intermedia terminada
+  Invoice.belongsToMany(Product, {
+    through: InvoiceProducts,
+    foreignKey: "invoice_id",
+    otherKey: "product_id",
+    as: "products",
+  });
+
+  Product.belongsToMany(Invoice, {
+    through: InvoiceProducts,
+    foreignKey: "product_id",
+    otherKey: "invoice_id",
+    as: "invoices",
+  });
+
+  Invoice.belongsTo(Customer, { foreignKey: "customer_id", as: "customer" });
+  Customer.hasMany(Invoice, { foreignKey: "customer_id", as: "invoices" });
 }
-
-

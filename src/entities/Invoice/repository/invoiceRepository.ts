@@ -1,5 +1,6 @@
 import type { IInvoiceRepository } from "../domain/interfaces/IInvoiceRepository.js";
-import type { TInvoice } from "../domain/types/TInvoice.js";
+import type Invoice from "../domain/models/InvoiceModel.js";
+import type { ProdutList, TInvoice } from "../domain/types/TInvoice.js";
 import type { TInvoiceEndpoint } from "../domain/types/TInvoiceEndpoint.js";
 import { InvoiceService } from "../services/invoiceService.js";
 
