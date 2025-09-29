@@ -56,7 +56,7 @@ invoiceRouter.get("/all", invoiceController.getAll);
  *       404:
  *         description: Invoice not found
  */
-invoiceRouter.get("/:id", invoiceController.get);
+invoiceRouter.get("/:uuid", invoiceController.get);
 
 /**
  * @openapi

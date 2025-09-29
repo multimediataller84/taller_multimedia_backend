@@ -39,9 +39,9 @@ export class CreditService implements ICreditServices {
 
   post = async (data: TCredit): Promise<TCreditEndpoint> => {
     try {
-      const { invoice_id } = data;
-      const exists = await Credit.findOne({ where: { invoice_id } });
-      if (exists) throw new Error("credit of this invoice already exists");
+      const { customer_id } = data;
+      const exists = await Credit.findOne({ where: { customer_id } });
+      if (exists) throw new Error("this customer have a current credit");
 
       const credit = await Credit.create(data);
       return credit;

@@ -19,7 +19,7 @@ export class InvoiceController implements IInvoiceController {
 
   get = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.useCases.get.execute(Number(req.params.id));
+      const result = await this.useCases.get.execute(String(req.params.uuid));
       res.status(200).json(result);
     } catch (error: any) {
       res.status(404).json({ error: error.message });

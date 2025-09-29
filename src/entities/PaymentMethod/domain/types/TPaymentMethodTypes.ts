@@ -1,1 +1,0 @@
-export type TPaymentMethodTypes = "cash" | "card" | "transfer" | "mobile" | "check";

@@ -7,32 +7,9 @@ import User from "../entities/User/domain/models/UserModel.js";
 import Category from "../entities/Category/domain/models/CategoryModel.js";
 import Tax from "../entities/Tax/domain/models/TaxModel.js";
 import Product from "../entities/Product/domain/models/ProductModel.js";
-import CreditStatus from "../entities/CreditStatus/domain/models/CreditStatusModel.js";
 import InvoiceProducts from "../entities/Invoice/domain/models/InvoiceProducts.js";
 
 export function setupAssociations() {
-  // Credit <-> Invoice (Revisar)
-  Credit.belongsTo(Invoice, { foreignKey: "invoice_id", as: "invoice" });
-  Invoice.hasOne(Credit, { foreignKey: "invoice_id", as: "credit" });
-
-  // Credit <-> Customer (Revisar)
-  Credit.belongsTo(Customer, { foreignKey: "customer_id", as: "customer" });
-  Customer.hasMany(Credit, { foreignKey: "customer_id", as: "credits" });
-
-  // Credit <-> CreditPayment (Revisar)
-  Credit.hasMany(CreditPayment, { foreignKey: "credit_id", as: "payments" });
-  CreditPayment.belongsTo(Credit, { foreignKey: "credit_id", as: "credit" });
-
-  // Credit <-> CreditStatus terminada Revisar
-  Credit.belongsTo(CreditStatus, {
-    foreignKey: "credit_status_id",
-    as: "status_id",
-  });
-  CreditStatus.hasMany(Credit, {
-    foreignKey: "credit_status_id",
-    as: "credits",
-  });
-
   // Role <->  User arreglada terminada
   Role.hasMany(User, { foreignKey: "role_id", as: "users" });
   User.belongsTo(Role, { foreignKey: "role_id", as: "role" });
@@ -60,6 +37,17 @@ export function setupAssociations() {
     as: "invoices",
   });
 
+  // Customer <-> Invoice arreglada y terminada
   Invoice.belongsTo(Customer, { foreignKey: "customer_id", as: "customer" });
   Customer.hasMany(Invoice, { foreignKey: "customer_id", as: "invoices" });
+
+  // Customer -> Credit arreglada y terminada
+  Credit.belongsTo(Customer, { foreignKey: "customer_id", as: "customer" });
+  Customer.hasOne(Credit, { foreignKey: "customer_id", as: "credit" });
+
+  /*
+  // Credit <-> CreditPayment (Rehacer)
+  Credit.hasMany(CreditPayment, { foreignKey: "credit_id", as: "payments" });
+  CreditPayment.belongsTo(Credit, { foreignKey: "credit_id", as: "credit" });
+  */
 }

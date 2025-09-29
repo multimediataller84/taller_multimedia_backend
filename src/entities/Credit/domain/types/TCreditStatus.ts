@@ -1,1 +1,1 @@
-export type TCreditStatus =  "Pending" | "Partial" | "Canceled";
+export type TCreditStatus =  "Pending" | "Aproved" | "Revoked";

@@ -15,9 +15,9 @@ export class InvoiceRepository implements IInvoiceRepository {
     return InvoiceRepository.instance;
   }
 
-  get = async (id: number): Promise<TInvoiceEndpoint> => {
+  get = async (uuid: string): Promise<TInvoiceEndpoint> => {
     try {
-      const invoice = await this.invoiceService.get(id);
+      const invoice = await this.invoiceService.get(uuid);
       if (!invoice) {
         throw new Error("source not found");
       }
