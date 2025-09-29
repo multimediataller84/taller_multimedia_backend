@@ -6,8 +6,13 @@ import {
   type CreationOptional,
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
+import type Credit from "../../../Credit/domain/models/CreditModel.js";
+import type Invoice from "../../../Invoice/domain/models/InvoiceModel.js";
 
-class Customer extends Model<InferAttributes<Customer>, InferCreationAttributes<Customer>> {
+class Customer extends Model<
+  InferAttributes<Customer>,
+  InferCreationAttributes<Customer>
+> {
   declare id: CreationOptional<number>;
   declare name: string;
   declare last_name: string;
@@ -15,6 +20,8 @@ class Customer extends Model<InferAttributes<Customer>, InferCreationAttributes<
   declare id_number: string;
   declare email: string;
   declare phone: number;
+  declare credit?: Credit;
+  declare invoices?: Invoice[];
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -61,7 +68,7 @@ Customer.init(
       type: DataTypes.DATE,
       allowNull: false,
       field: "updated_at",
-    }
+    },
   },
   {
     sequelize,
@@ -72,4 +79,3 @@ Customer.init(
 );
 
 export default Customer;
-
