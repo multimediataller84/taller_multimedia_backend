@@ -1,5 +1,6 @@
 import type { IInvoiceRepository } from "../domain/interfaces/IInvoiceRepository.js";
-import type { TInvoice } from "../domain/types/TInvoice.js";
+import type Invoice from "../domain/models/InvoiceModel.js";
+import type { ProdutList, TInvoice } from "../domain/types/TInvoice.js";
 import type { TInvoiceEndpoint } from "../domain/types/TInvoiceEndpoint.js";
 import { InvoiceService } from "../services/invoiceService.js";
 
@@ -14,9 +15,9 @@ export class InvoiceRepository implements IInvoiceRepository {
     return InvoiceRepository.instance;
   }
 
-  get = async (id: number): Promise<TInvoiceEndpoint> => {
+  get = async (uuid: string): Promise<TInvoiceEndpoint> => {
     try {
-      const invoice = await this.invoiceService.get(id);
+      const invoice = await this.invoiceService.get(uuid);
       if (!invoice) {
         throw new Error("source not found");
       }

@@ -6,6 +6,7 @@ import {
   type CreationOptional,
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
+import type { TPaymentMethod } from "../../../../domain/types/TPaymentMethod.js";
 
 class CreditPayment extends Model<
   InferAttributes<CreditPayment>,
@@ -15,7 +16,7 @@ class CreditPayment extends Model<
   declare credit_id: number;
   declare payment_date: Date;
   declare amount: number;
-  declare payment_method_id: number;
+  declare payment_method: TPaymentMethod;
   declare note: string | null;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -46,15 +47,9 @@ CreditPayment.init(
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
     },
-    payment_method_id: {
-      type: DataTypes.INTEGER.UNSIGNED,
+    payment_method: {
+      type: DataTypes.ENUM("Cash", "Credit", "Debit Card", "Transfer"),
       allowNull: false,
-      references: {
-        model: "payment_methods",
-        key: "id",
-      },
-      onUpdate: "CASCADE",
-      onDelete: "RESTRICT",
     },
     note: {
       type: DataTypes.STRING(512),
@@ -80,4 +75,3 @@ CreditPayment.init(
 );
 
 export default CreditPayment;
-

@@ -1,23 +1,25 @@
 import {
   Model,
   DataTypes,
+  type CreationOptional,
   type InferAttributes,
   type InferCreationAttributes,
-  type CreationOptional,
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
 
-class InvoiceDetail extends Model<InferAttributes<InvoiceDetail>, InferCreationAttributes<InvoiceDetail>> {
+class InvoiceProducts extends Model<
+  InferAttributes<InvoiceProducts>,
+  InferCreationAttributes<InvoiceProducts>
+> {
   declare id: CreationOptional<number>;
   declare invoice_id: number;
   declare product_id: number;
   declare quantity: number;
   declare unit_price: number;
-  declare discount: number;
   declare subtotal: number;
 }
 
-InvoiceDetail.init(
+InvoiceProducts.init(
   {
     id: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -31,6 +33,7 @@ InvoiceDetail.init(
     product_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
+      references: { model: "products", key: "id" },
     },
     quantity: {
       type: DataTypes.INTEGER.UNSIGNED,
@@ -40,11 +43,6 @@ InvoiceDetail.init(
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
     },
-    discount: {
-      type: DataTypes.DECIMAL(12, 2),
-      allowNull: false,
-      defaultValue: 0,
-    },
     subtotal: {
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
@@ -52,11 +50,10 @@ InvoiceDetail.init(
   },
   {
     sequelize,
-    modelName: "InvoiceDetail",
-    tableName: "invoice_details",
+    modelName: "InvoiceProducts",
+    tableName: "invoice_products",
     timestamps: false,
   }
 );
 
-export default InvoiceDetail;
-
+export default InvoiceProducts;

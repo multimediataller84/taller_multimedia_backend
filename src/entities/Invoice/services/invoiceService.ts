@@ -2,7 +2,11 @@ import Invoice from "../domain/models/InvoiceModel.js";
 import type { IInvoiceServices } from "../domain/interfaces/IInvoiceServices.js";
 import type { TInvoiceEndpoint } from "../domain/types/TInvoiceEndpoint.js";
 import type { TInvoice } from "../domain/types/TInvoice.js";
-
+import Product from "../../Product/domain/models/ProductModel.js";
+import Tax from "../../Tax/domain/models/TaxModel.js";
+import { v4 as uuidv4 } from "uuid";
+import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
+import { sequelize } from "../../../database/connection.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -13,9 +17,32 @@ export class InvoiceService implements IInvoiceServices {
     return InvoiceService.instance;
   }
 
-  get = async (id: number): Promise<TInvoiceEndpoint> => {
+  get = async (uuid: string): Promise<TInvoiceEndpoint> => {
     try {
-      const invoice = await Invoice.findByPk(id);
+      const invoice = await Invoice.findOne({
+        where: { invoice_number: uuid },
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "phone",
+              "email",
+            ],
+          },
+          {
+            model: Product,
+            as: "products",
+            attributes: ["id", "product_name", "sku"],
+            through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+        ],
+      });
       if (!invoice) {
         throw new Error("invoice not found");
       }
@@ -27,7 +54,29 @@ export class InvoiceService implements IInvoiceServices {
 
   getAll = async (): Promise<TInvoiceEndpoint[]> => {
     try {
-      const invoice = await Invoice.findAll();
+      const invoice = await Invoice.findAll({
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "phone",
+              "email",
+            ],
+          },
+          {
+            model: Product,
+            as: "products",
+            attributes: ["id", "product_name", "sku"],
+            through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+        ],
+      });
       if (invoice.length === 0) {
         throw new Error("invoices not found");
       }
@@ -38,14 +87,90 @@ export class InvoiceService implements IInvoiceServices {
   };
 
   post = async (data: TInvoice): Promise<TInvoiceEndpoint> => {
+    const transaction = await sequelize.transaction();
     try {
-      const { invoice_number } = data;
-      const exists = await Invoice.findOne({ where: { invoice_number } });
-      if (exists) throw new Error("invoice already exists");
+      let subtotal = 0;
+      let taxTotal = 0;
 
-      const invoice = await Invoice.create(data);
-      return invoice;
+      const productsWithTax = [];
+
+      for (const item of data.products) {
+        const product = await Product.findByPk(item.id, {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+        if (!product) throw new Error("Product not found");
+
+        const tax = await Tax.findByPk(product.tax_id, { transaction });
+        if (!tax) throw new Error("Tax not found");
+
+        const quantity = Number(item.quantity ?? 1);
+
+        if (product.stock < quantity) {
+          throw new Error("Product of order doesn't have enough stock");
+        }
+
+        const unit_price = Number(product.unit_price);
+        const profit_margin = Number(product.profit_margin);
+        const percentage = Number(tax.percentage);
+
+        const baseSubtotal = (unit_price + profit_margin) * quantity;
+        const taxAmount = baseSubtotal * (percentage / 100);
+
+        subtotal += baseSubtotal;
+        taxTotal += taxAmount;
+
+        productsWithTax.push({
+          product,
+          quantity,
+          subtotal: baseSubtotal + taxAmount,
+          unit_price: product.unit_price,
+        });
+
+        await product.update(
+          { stock: product.stock - quantity },
+          { transaction }
+        );
+      }
+
+      const total = subtotal + taxTotal;
+      const uuid = uuidv4();
+
+      const invoice = await Invoice.create(
+        {
+          customer_id: data.customer_id,
+          issue_date: new Date(),
+          due_date: data.due_date ?? null,
+          subtotal,
+          tax_total: taxTotal,
+          total,
+          payment_method: data.payment_method,
+          status: data.status,
+          invoice_number: uuid,
+          biometric_hash: data.biometric_hash ?? null,
+          digital_signature: data.digital_signature ?? null,
+        },
+        { transaction }
+      );
+
+      for (const product of productsWithTax) {
+        await invoice.addProduct(product.product, {
+          through: {
+            quantity: product.quantity,
+            unit_price: product.unit_price,
+            subtotal: product.subtotal,
+          },
+          transaction,
+        });
+      }
+
+      await transaction.commit();
+
+      const updateInvoice = await this.get(uuid);
+
+      return updateInvoice ?? invoice;
     } catch (error) {
+      await transaction.rollback();
       throw error;
     }
   };
@@ -57,7 +182,31 @@ export class InvoiceService implements IInvoiceServices {
         throw new Error("invoice not found");
       }
       await invoice.update(data);
-      return invoice;
+
+      const invoice_dta = await Invoice.findByPk(id, {
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "phone",
+              "email",
+            ],
+          },
+          {
+            model: Product,
+            as: "products",
+            attributes: ["id", "product_name", "sku"],
+            through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+        ],
+      });
+      return invoice_dta ?? invoice;
     } catch (error) {
       throw error;
     }
@@ -65,7 +214,29 @@ export class InvoiceService implements IInvoiceServices {
 
   delete = async (id: number): Promise<TInvoiceEndpoint> => {
     try {
-      const invoice = await Invoice.findByPk(id);
+      const invoice = await Invoice.findByPk(id, {
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "phone",
+              "email",
+            ],
+          },
+          {
+            model: Product,
+            as: "products",
+            attributes: ["id", "product_name", "sku"],
+            through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+        ],
+      });
       if (!invoice) {
         throw new Error("invoice not found");
       }
