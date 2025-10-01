@@ -7,6 +7,7 @@ import Tax from "../../Tax/domain/models/TaxModel.js";
 import { v4 as uuidv4 } from "uuid";
 import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
 import { sequelize } from "../../../database/connection.js";
+import Credit from "../../Credit/domain/models/CreditModel.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -88,7 +89,22 @@ export class InvoiceService implements IInvoiceServices {
 
   post = async (data: TInvoice): Promise<TInvoiceEndpoint> => {
     const transaction = await sequelize.transaction();
+
     try {
+      let credit: Credit | null = null;
+
+      if (data.payment_method === "Credit") {
+        credit = await Credit.findOne({
+          where: { customer_id: data.customer_id },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        if (credit?.status !== "Aproved") {
+          throw new Error(`Customer doesn't have a credit approved, status: ${credit?.status}`);
+        }
+      }
+
       let subtotal = 0;
       let taxTotal = 0;
 
@@ -107,7 +123,9 @@ export class InvoiceService implements IInvoiceServices {
         const quantity = Number(item.quantity ?? 1);
 
         if (product.stock < quantity) {
-          throw new Error("Product of order doesn't have enough stock");
+          throw new Error(
+            `Product ${product.product_name} id:${product?.id} of order doesn't have enough stock`
+          );
         }
 
         const unit_price = Number(product.unit_price);
@@ -135,6 +153,19 @@ export class InvoiceService implements IInvoiceServices {
 
       const total = subtotal + taxTotal;
       const uuid = uuidv4();
+
+      if (data.payment_method === "Credit") {
+        if (!credit) throw new Error("Credit not found");
+
+        if (credit.balance < total) {
+          throw new Error("The customer does not have sufficient funds");
+        }
+
+        await credit.update(
+          { balance: credit.balance - total },
+          { transaction }
+        );
+      }
 
       const invoice = await Invoice.create(
         {

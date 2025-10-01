@@ -22,13 +22,13 @@ router.get("/openapi.json", (req, res) => {
 });
 
 router.use("/auth", authRouter);
-router.use("/user", authMiddleware, verifyRole(["admin", "employee"]), usersRouter);
+router.use("/user", usersRouter);
 router.use("/customer", authMiddleware, verifyRole(["admin", "employee"]), customerRouter);
 router.use("/invoice", authMiddleware, verifyRole(["admin", "employee"]), invoiceRouter);
 router.use("/product", authMiddleware, verifyRole(["admin", "employee"]), productRouter);
 router.use("/product/tax", authMiddleware, verifyRole(["admin", "employee"]), taxRouter);
 router.use("/category", authMiddleware, verifyRole(["admin", "employee"]), categoryRouter);
-router.use("/role", authMiddleware, verifyRole(["admin", "employee"]), rolesRouter);
+router.use("/role", rolesRouter);
 router.use("/credit", authMiddleware, verifyRole(["admin", "employee"]), creditRouter);
 router.use("/credit/payment", authMiddleware, verifyRole(["admin", "employee"]), creditPaymentRouter);
 router.use("/admin/data", processDataRouter);
