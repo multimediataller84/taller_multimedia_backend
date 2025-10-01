@@ -2,6 +2,7 @@ import Credit from "../domain/models/CreditModel.js";
 import type { ICreditServices } from "../domain/interfaces/ICreditServices.js";
 import type { TCreditEndpoint } from "../domain/types/TCreditEndpoint.js";
 import type { TCredit } from "../domain/types/TCredit.js";
+import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
 
 export class CreditService implements ICreditServices {
   private static instance: CreditService;
@@ -40,9 +41,13 @@ export class CreditService implements ICreditServices {
   post = async (data: TCredit): Promise<TCreditEndpoint> => {
     try {
       const { customer_id } = data;
+      const customer  = await Customer.findByPk(customer_id);
+      if (!customer) throw new Error("Customer dont exists");
+      
       const exists = await Credit.findOne({ where: { customer_id } });
       if (exists) throw new Error("this customer have a current credit");
 
+      data.balance = data.approved_credit_amount;
       const credit = await Credit.create(data);
       return credit;
     } catch (error) {
