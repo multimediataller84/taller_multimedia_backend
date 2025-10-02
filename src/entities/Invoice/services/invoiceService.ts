@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from "uuid";
 import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
 import { sequelize } from "../../../database/connection.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
+import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -41,6 +42,19 @@ export class InvoiceService implements IInvoiceServices {
             as: "products",
             attributes: ["id", "product_name", "sku"],
             through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
           },
         ],
       });
@@ -76,6 +90,19 @@ export class InvoiceService implements IInvoiceServices {
             attributes: ["id", "product_name", "sku"],
             through: { attributes: ["quantity", "unit_price", "subtotal"] },
           },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
+          },
         ],
       });
       if (invoice.length === 0) {
@@ -101,7 +128,9 @@ export class InvoiceService implements IInvoiceServices {
         });
 
         if (credit?.status !== "Aproved") {
-          throw new Error(`Customer doesn't have a credit approved, status: ${credit?.status}`);
+          throw new Error(
+            `Customer doesn't have a credit approved, status: ${credit?.status}`
+          );
         }
       }
 
@@ -152,6 +181,7 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       const total = subtotal + taxTotal;
+      const amount_paid = data.payment_method === "Credit" ? 0 : total;
       const uuid = uuidv4();
 
       if (data.payment_method === "Credit") {
@@ -175,6 +205,7 @@ export class InvoiceService implements IInvoiceServices {
           subtotal,
           tax_total: taxTotal,
           total,
+          amount_paid,
           payment_method: data.payment_method,
           status: data.status,
           invoice_number: uuid,
@@ -235,6 +266,19 @@ export class InvoiceService implements IInvoiceServices {
             attributes: ["id", "product_name", "sku"],
             through: { attributes: ["quantity", "unit_price", "subtotal"] },
           },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
+          },
         ],
       });
       return invoice_dta ?? invoice;
@@ -265,6 +309,19 @@ export class InvoiceService implements IInvoiceServices {
             as: "products",
             attributes: ["id", "product_name", "sku"],
             through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
           },
         ],
       });

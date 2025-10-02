@@ -8,6 +8,7 @@ import {
 import { sequelize } from "../../../../database/connection.js";
 import type { TCreditStatus } from "../types/TCreditStatus.js";
 import type Customer from "../../../CustomerAccount/domain/models/CustomerModel.js";
+import type CreditPayment from "../../../CreditPayment/domain/models/CreditPaymentModel.js";
 
 class Credit extends Model<
   InferAttributes<Credit>,
@@ -19,6 +20,7 @@ class Credit extends Model<
   declare balance: number;
   declare status: TCreditStatus;
   declare customer?: Customer;
+  declare payments?: CreditPayment[];
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }

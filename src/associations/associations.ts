@@ -45,9 +45,11 @@ export function setupAssociations() {
   Credit.belongsTo(Customer, { foreignKey: "customer_id", as: "customer" });
   Customer.hasOne(Credit, { foreignKey: "customer_id", as: "credit" });
 
-  /*
-  // Credit <-> CreditPayment (Rehacer)
-  Credit.hasMany(CreditPayment, { foreignKey: "credit_id", as: "payments" });
+  // Credit has CreditPayment
   CreditPayment.belongsTo(Credit, { foreignKey: "credit_id", as: "credit" });
-  */
+  Credit.hasMany(CreditPayment, { foreignKey: "credit_id", as: "payments" });
+
+  // Invoice -> CreditPayment 1:N
+  CreditPayment.belongsTo(Invoice, { foreignKey: "invoice_id", as: "invoice" });
+  Invoice.hasMany(CreditPayment, { foreignKey: "invoice_id", as: "payments" });
 }

@@ -3,6 +3,7 @@ import type { ICustomerServices } from "../domain/interfaces/ICustomerServices.j
 import type { TCustomerEndpoint } from "../domain/types/TCustomerEndpoint.js";
 import type { TCustomer } from "../domain/types/TCustomer.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
+import Invoice from "../../Invoice/domain/models/InvoiceModel.js";
 
 export class CustomerService implements ICustomerServices {
   private static instance: CustomerService;
@@ -23,6 +24,24 @@ export class CustomerService implements ICustomerServices {
             as: "credit",
             attributes: ["id", "approved_credit_amount", "balance", "status"],
           },
+          {
+            model: Invoice,
+            as: "invoices",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
+          },
         ],
       });
       if (!customer) {
@@ -42,6 +61,24 @@ export class CustomerService implements ICustomerServices {
             model: Credit,
             as: "credit",
             attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
+          {
+            model: Invoice,
+            as: "invoices",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
           },
         ],
       });
@@ -90,6 +127,24 @@ export class CustomerService implements ICustomerServices {
             model: Credit,
             as: "credit",
             attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
+          {
+            model: Invoice,
+            as: "invoices",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
           },
         ],
       });
