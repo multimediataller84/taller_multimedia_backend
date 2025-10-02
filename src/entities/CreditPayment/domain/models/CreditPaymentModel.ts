@@ -7,17 +7,21 @@ import {
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
 import type { TPaymentMethod } from "../../../../domain/types/TPaymentMethod.js";
-
+import type Credit from "../../../Credit/domain/models/CreditModel.js";
+import type Invoice from "../../../Invoice/domain/models/InvoiceModel.js";
 class CreditPayment extends Model<
   InferAttributes<CreditPayment>,
   InferCreationAttributes<CreditPayment>
 > {
   declare id: CreationOptional<number>;
   declare credit_id: number;
+  declare invoice_id: number;
   declare payment_date: Date;
   declare amount: number;
   declare payment_method: TPaymentMethod;
   declare note: string | null;
+  declare credit?: Credit;
+  declare invoice?: Invoice;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
 }
@@ -37,7 +41,17 @@ CreditPayment.init(
         key: "id",
       },
       onUpdate: "CASCADE",
-      onDelete: "CASCADE",
+      onDelete: "RESTRICT",
+    },
+    invoice_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      references: {
+        model: "invoices",
+        key: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "RESTRICT",
     },
     payment_date: {
       type: DataTypes.DATEONLY,

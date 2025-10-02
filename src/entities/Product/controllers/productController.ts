@@ -40,7 +40,7 @@ export class ProductController implements IProductController {
       const result = await this.useCases.post.execute(req.body);
       res.status(200).json(result);
     } catch (error: any) {
-      res.status(403).json({ error: error.message });
+      res.status(406).json({ error: error.message });
     }
   };
 

@@ -3,6 +3,7 @@ import type { ICreditServices } from "../domain/interfaces/ICreditServices.js";
 import type { TCreditEndpoint } from "../domain/types/TCreditEndpoint.js";
 import type { TCredit } from "../domain/types/TCredit.js";
 import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
+import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
 
 export class CreditService implements ICreditServices {
   private static instance: CreditService;
@@ -16,7 +17,36 @@ export class CreditService implements ICreditServices {
 
   get = async (id: number): Promise<TCreditEndpoint> => {
     try {
-      const credit = await Credit.findByPk(id);
+      const credit = await Credit.findByPk(id, {
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "email",
+              "phone",
+            ],
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "invoice_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+            ],
+          },
+        ],
+      });
       if (!credit) {
         throw new Error("credit not found");
       }
@@ -28,7 +58,36 @@ export class CreditService implements ICreditServices {
 
   getAll = async (): Promise<TCreditEndpoint[]> => {
     try {
-      const credit = await Credit.findAll();
+      const credit = await Credit.findAll({
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "email",
+              "phone",
+            ],
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "invoice_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+            ],
+          },
+        ],
+      });
       if (credit.length === 0) {
         throw new Error("credit not found");
       }
@@ -41,9 +100,9 @@ export class CreditService implements ICreditServices {
   post = async (data: TCredit): Promise<TCreditEndpoint> => {
     try {
       const { customer_id } = data;
-      const customer  = await Customer.findByPk(customer_id);
+      const customer = await Customer.findByPk(customer_id);
       if (!customer) throw new Error("Customer dont exists");
-      
+
       const exists = await Credit.findOne({ where: { customer_id } });
       if (exists) throw new Error("this customer have a current credit");
 
@@ -62,7 +121,9 @@ export class CreditService implements ICreditServices {
         throw new Error("credit not found");
       }
       await credit.update(data);
-      return credit;
+
+      const fixCredit = await this.get(id);
+      return fixCredit ?? credit;
     } catch (error) {
       throw error;
     }
@@ -70,7 +131,36 @@ export class CreditService implements ICreditServices {
 
   delete = async (id: number): Promise<TCreditEndpoint> => {
     try {
-      const credit = await Credit.findByPk(id);
+      const credit = await Credit.findByPk(id, {
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "email",
+              "phone",
+            ],
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "invoice_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+            ],
+          },
+        ],
+      });
       if (!credit) {
         throw new Error("credit not found");
       }
