@@ -1,4 +1,5 @@
 import type { TGetAllOptions } from "../../../domain/types/TGetAllOptions.js";
+import Category from "../../Category/domain/models/CategoryModel.js";
 import type { ITaxServices } from "../domain/interfaces/ITaxServices.js";
 import Tax from "../domain/models/TaxModel.js";
 import type { TGetAllEnpoint } from "../domain/types/TGetAllEndpoint.js";
@@ -34,12 +35,14 @@ export class TaxService implements ITaxServices {
         description,
         limit = 50,
         offset = 0,
-        orderBy = "name",
+        orderBy = "id",
         orderDirection = "ASC",
       } = options;
 
+      const category = await Category.findByPk(description);
+
       const whereClause = description
-        ? { description: { [Op.iLike]: `%${description}%` } }
+        ? { category: category?.name }
         : {};
 
       const total = await Tax.count({ where: whereClause });
