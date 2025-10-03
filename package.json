@@ -5,7 +5,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "start": "tsc && nodemon dist/index.js"
+    "start": "tsc && node dist/index.js",
+    "dev": "ts-node-dev src/index.ts"
   },
   "type": "module",
   "keywords": [],
