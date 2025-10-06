@@ -2,6 +2,8 @@ import Customer from "../domain/models/CustomerModel.js";
 import type { ICustomerServices } from "../domain/interfaces/ICustomerServices.js";
 import type { TCustomerEndpoint } from "../domain/types/TCustomerEndpoint.js";
 import type { TCustomer } from "../domain/types/TCustomer.js";
+import Credit from "../../Credit/domain/models/CreditModel.js";
+import Invoice from "../../Invoice/domain/models/InvoiceModel.js";
 
 export class CustomerService implements ICustomerServices {
   private static instance: CustomerService;
@@ -15,7 +17,33 @@ export class CustomerService implements ICustomerServices {
 
   get = async (id: number): Promise<TCustomerEndpoint> => {
     try {
-      const customer = await Customer.findByPk(id);
+      const customer = await Customer.findByPk(id, {
+        include: [
+          {
+            model: Credit,
+            as: "credit",
+            attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
+          {
+            model: Invoice,
+            as: "invoices",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
+          },
+        ],
+      });
       if (!customer) {
         throw new Error("customer not found");
       }
@@ -27,7 +55,33 @@ export class CustomerService implements ICustomerServices {
 
   getAll = async (): Promise<TCustomerEndpoint[]> => {
     try {
-      const customer = await Customer.findAll();
+      const customer = await Customer.findAll({
+        include: [
+          {
+            model: Credit,
+            as: "credit",
+            attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
+          {
+            model: Invoice,
+            as: "invoices",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
+          },
+        ],
+      });
       if (customer.length === 0) {
         throw new Error("customers not found");
       }
@@ -57,7 +111,9 @@ export class CustomerService implements ICustomerServices {
         throw new Error("customer not found");
       }
       await customer.update(data);
-      return customer;
+      const customerFix = await this.get(id);
+
+      return customerFix ?? customer;
     } catch (error) {
       throw error;
     }
@@ -65,7 +121,33 @@ export class CustomerService implements ICustomerServices {
 
   delete = async (id: number): Promise<TCustomerEndpoint> => {
     try {
-      const customer = await Customer.findByPk(id);
+      const customer = await Customer.findByPk(id, {
+        include: [
+          {
+            model: Credit,
+            as: "credit",
+            attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
+          {
+            model: Invoice,
+            as: "invoices",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
+          },
+        ],
+      });
       if (!customer) {
         throw new Error("customer not found");
       }

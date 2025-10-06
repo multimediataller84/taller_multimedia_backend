@@ -14,6 +14,7 @@ import Product from "../../../Product/domain/models/ProductModel.js";
 import type { ProdutList } from "../types/TInvoice.js";
 import type { TInvoiceStatus } from "../types/TInvoiceStatus.js";
 import type { TPaymentMethod } from "../../../../domain/types/TPaymentMethod.js";
+import type CreditPayment from "../../../CreditPayment/domain/models/CreditPaymentModel.js";
 
 class Invoice extends Model<
   InferAttributes<Invoice>,
@@ -26,6 +27,7 @@ class Invoice extends Model<
   declare subtotal: number;
   declare tax_total: number;
   declare total: number;
+  declare amount_paid: number;
   declare payment_method: TPaymentMethod;
   declare status: TInvoiceStatus;
   declare invoice_number: string;
@@ -35,6 +37,7 @@ class Invoice extends Model<
   declare updatedAt: CreationOptional<Date>;
   declare customer?: Customer;
   declare products?: ProdutList[];
+  declare payments?: CreditPayment[];
   declare addProduct: BelongsToManyAddAssociationMixin<Product, number>;
   declare addProducts: BelongsToManyAddAssociationsMixin<Product, number>;
   declare getProducts: BelongsToManyGetAssociationsMixin<Product>;
@@ -68,6 +71,10 @@ Invoice.init(
       allowNull: false,
     },
     total: {
+      type: DataTypes.DECIMAL(12, 2),
+      allowNull: false,
+    },
+    amount_paid: {
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
     },

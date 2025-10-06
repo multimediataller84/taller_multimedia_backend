@@ -7,6 +7,8 @@ import Tax from "../../Tax/domain/models/TaxModel.js";
 import { v4 as uuidv4 } from "uuid";
 import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
 import { sequelize } from "../../../database/connection.js";
+import Credit from "../../Credit/domain/models/CreditModel.js";
+import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -40,6 +42,19 @@ export class InvoiceService implements IInvoiceServices {
             as: "products",
             attributes: ["id", "product_name", "sku"],
             through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
           },
         ],
       });
@@ -75,6 +90,19 @@ export class InvoiceService implements IInvoiceServices {
             attributes: ["id", "product_name", "sku"],
             through: { attributes: ["quantity", "unit_price", "subtotal"] },
           },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
+          },
         ],
       });
       if (invoice.length === 0) {
@@ -88,7 +116,24 @@ export class InvoiceService implements IInvoiceServices {
 
   post = async (data: TInvoice): Promise<TInvoiceEndpoint> => {
     const transaction = await sequelize.transaction();
+
     try {
+      let credit: Credit | null = null;
+
+      if (data.payment_method === "Credit") {
+        credit = await Credit.findOne({
+          where: { customer_id: data.customer_id },
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        if (credit?.status !== "Aproved") {
+          throw new Error(
+            `Customer doesn't have a credit approved, status: ${credit?.status}`
+          );
+        }
+      }
+
       let subtotal = 0;
       let taxTotal = 0;
 
@@ -107,7 +152,9 @@ export class InvoiceService implements IInvoiceServices {
         const quantity = Number(item.quantity ?? 1);
 
         if (product.stock < quantity) {
-          throw new Error("Product of order doesn't have enough stock");
+          throw new Error(
+            `Product ${product.product_name} id:${product?.id} of order doesn't have enough stock`
+          );
         }
 
         const unit_price = Number(product.unit_price);
@@ -134,7 +181,21 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       const total = subtotal + taxTotal;
+      const amount_paid = data.payment_method === "Credit" ? 0 : total;
       const uuid = uuidv4();
+
+      if (data.payment_method === "Credit") {
+        if (!credit) throw new Error("Credit not found");
+
+        if (credit.balance < total) {
+          throw new Error("The customer does not have sufficient funds");
+        }
+
+        await credit.update(
+          { balance: credit.balance - total },
+          { transaction }
+        );
+      }
 
       const invoice = await Invoice.create(
         {
@@ -144,6 +205,7 @@ export class InvoiceService implements IInvoiceServices {
           subtotal,
           tax_total: taxTotal,
           total,
+          amount_paid,
           payment_method: data.payment_method,
           status: data.status,
           invoice_number: uuid,
@@ -204,6 +266,19 @@ export class InvoiceService implements IInvoiceServices {
             attributes: ["id", "product_name", "sku"],
             through: { attributes: ["quantity", "unit_price", "subtotal"] },
           },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
+          },
         ],
       });
       return invoice_dta ?? invoice;
@@ -234,6 +309,19 @@ export class InvoiceService implements IInvoiceServices {
             as: "products",
             attributes: ["id", "product_name", "sku"],
             through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
           },
         ],
       });
