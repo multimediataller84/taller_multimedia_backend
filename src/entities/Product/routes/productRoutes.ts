@@ -34,6 +34,34 @@ productRouter.post("/all", productController.getAll);
 
 /**
  * @openapi
+ * tags:
+ *   - name: Product
+ *     description: Endpoints for managing products
+ */
+
+/**
+ * @openapi
+ * /measure/all:
+ *   get:
+ *     summary: Get all the unit measure
+ *     tags:
+ *       - Measure
+ *     responses:
+ *       200:
+ *         description: UnitMeasure List
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/TProductEndpoint'
+ *       404:
+ *         description: No measures found
+ */
+productRouter.get("/measure/all", productController.getAllMeasure);
+
+/**
+ * @openapi
  * /product/{id}:
  *   get:
  *     summary: Get a product by ID

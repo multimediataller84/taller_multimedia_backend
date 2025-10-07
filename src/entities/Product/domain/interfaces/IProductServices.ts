@@ -1,4 +1,5 @@
 import type { TGetAllOptions } from "../../../../domain/types/TGetAllOptions.js";
+import type { TUnitMeasure } from "../types/TUnitMeasure.js";
 import type { TGetAllEnpoint } from "../types/TGetAllOptions.js";
 import type { TProduct } from "../types/TProduct.js";
 import type { TProductEndpoint } from "../types/TProductEndpoint.js";
@@ -9,4 +10,5 @@ export interface IProductServices {
   post: (data: TProduct) => Promise<TProductEndpoint>;
   delete: (id: number) => Promise<TProductEndpoint>;
   patch: (id: number, data: TProduct) => Promise<TProductEndpoint>;
+  getAllMeasure: () => Promise<TUnitMeasure[]>;
 }
