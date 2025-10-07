@@ -14,6 +14,16 @@ dist-ssr
 .env
 .env copy
 
+# Certificados digitales (NUNCA subir al repositorio)
+certificates/*.p12
+certificates/*.pfx
+certificates/*.key
+certificates/*.pem
+
+# Facturas generadas
+invoices/*.xml
+invoices/*.json
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

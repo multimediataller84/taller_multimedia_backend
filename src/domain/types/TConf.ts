@@ -11,4 +11,9 @@ export type TConfig = {
   URL: string;
   DB_PORT: string;
   PY_API: string;
+  HACIENDA_API_SANDBOX: string;
+  ENVIROMENT: string;
+  HACIENDA_TOKEN: string;
+  CERTIFICATE_PATH: string;
+  CERTIFICATE_PASSWORD: string;
 };
