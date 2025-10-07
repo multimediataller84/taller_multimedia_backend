@@ -8,6 +8,9 @@ import Category from "../entities/Category/domain/models/CategoryModel.js";
 import Tax from "../entities/Tax/domain/models/TaxModel.js";
 import Product from "../entities/Product/domain/models/ProductModel.js";
 import InvoiceProducts from "../entities/Invoice/domain/models/InvoiceProducts.js";
+import Province from "../domain/models/ProvinceModel.js";
+import Canton from "../domain/models/CantonModel.js";
+import District from "../domain/models/DistrictModel.js";
 
 export function setupAssociations() {
   // Role <->  User arreglada terminada
@@ -52,4 +55,11 @@ export function setupAssociations() {
   // Invoice -> CreditPayment 1:N
   CreditPayment.belongsTo(Invoice, { foreignKey: "invoice_id", as: "invoice" });
   Invoice.hasMany(CreditPayment, { foreignKey: "invoice_id", as: "payments" });
+
+  // Ubicacion
+  Province.hasMany(Canton, { foreignKey: "province_id", as: "cantons" });
+  Canton.belongsTo(Province, { foreignKey: "province_id", as: "province" });
+
+  Canton.hasMany(District, { foreignKey: "canton_id", as: "districts" });
+  District.belongsTo(Canton, { foreignKey: "canton_id", as: "canton" });
 }
