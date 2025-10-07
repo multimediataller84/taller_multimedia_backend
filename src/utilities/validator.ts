@@ -15,7 +15,12 @@ const envSchema = z.object({
   PORT: z.string(),
   URL: z.string(),
   DB_PORT: z.string(),
-  PY_API: z.string()
+  PY_API: z.string(),
+  HACIENDA_API_SANDBOX: z.string(),
+  ENVIROMENT: z.string(),
+  HACIENDA_TOKEN: z.string(),
+  CERTIFICATE_PATH: z.string(),
+  CERTIFICATE_PASSWORD: z.string(),
 });
 
 export const env = envSchema.parse(process.env);
