@@ -7,6 +7,8 @@ import Category from "../../Category/domain/models/CategoryModel.js";
 import { Op } from "sequelize";
 import type { TGetAllOptions } from "../../../domain/types/TGetAllOptions.js";
 import type { TGetAllEnpoint } from "../domain/types/TGetAllOptions.js";
+import type { TUnitMeasure } from "../domain/types/TUnitMeasure.js";
+import UnitMeasure from "../domain/models/UnitMeasure.js";
 
 export class ProductService implements IProductServices {
   private static instance: ProductService;
@@ -82,6 +84,18 @@ export class ProductService implements IProductServices {
         throw new Error("product not found");
       }
       return { data, total };
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  getAllMeasure = async (): Promise<TUnitMeasure[]> => {
+    try {
+      const data = await UnitMeasure.findAll();
+      if (data.length === 0) {
+        throw new Error("unit mesure not found");
+      }
+      return data;
     } catch (error) {
       throw error;
     }
