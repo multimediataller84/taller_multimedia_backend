@@ -9,6 +9,7 @@ export type TInvoiceEndpoint = {
   subtotal: number;
   tax_total: number;
   total: number;
+  cash_register_id: number;
   payment_method: TPaymentMethod;
   status: TInvoiceStatus;
   invoice_number: string;

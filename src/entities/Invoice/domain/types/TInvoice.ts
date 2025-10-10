@@ -9,6 +9,7 @@ export type ProdutList = Omit<TProduct, "stock"> & {
 export type TInvoice = {
   customer_id: number;
   due_date: Date | null;
+  cash_register_id: number;
   payment_method: TPaymentMethod;
   products: ProdutList[];
   status: TInvoiceStatus;
