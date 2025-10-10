@@ -9,6 +9,7 @@ import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
 import { sequelize } from "../../../database/connection.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
 import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
+import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -118,6 +119,12 @@ export class InvoiceService implements IInvoiceServices {
     const transaction = await sequelize.transaction();
 
     try {
+      const customer = await Customer.findByPk(data.customer_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!customer) throw new Error("Customer dont exist");
+
       let credit: Credit | null = null;
 
       if (data.payment_method === "Credit") {
@@ -197,6 +204,29 @@ export class InvoiceService implements IInvoiceServices {
         );
       }
 
+      if (data.payment_method === "Cash") {
+        const registered = await CashRegister.findByPk(data.cash_register_id, {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        if (!registered) {
+          throw new Error("Cash register not found.");
+        }
+
+        if (registered.status !== "open") {
+          throw new Error("The cash register is closed.");
+        }
+
+        if (registered.amount < total) {
+          throw new Error("Insufficient funds in cash register.");
+        }
+
+        const newAmount = parseFloat((registered.amount - total).toFixed(2));
+
+        await registered.update({ amount: newAmount }, { transaction });
+      }
+
       const invoice = await Invoice.create(
         {
           customer_id: data.customer_id,
@@ -211,6 +241,7 @@ export class InvoiceService implements IInvoiceServices {
           invoice_number: uuid,
           biometric_hash: data.biometric_hash ?? null,
           digital_signature: data.digital_signature ?? null,
+          cash_register_id: data.cash_register_id,
         },
         { transaction }
       );
