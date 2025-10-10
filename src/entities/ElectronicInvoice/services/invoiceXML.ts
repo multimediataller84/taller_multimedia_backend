@@ -1,5 +1,6 @@
 import { generateConsecutive } from "../utils/generateConsecutive.js";
 import type { TElectroniceInvoice } from "../domain/types/TElectroniceInvoice.js";
+import { calcLine } from "../utils/taxCalc.js";
 
 export class ElectroniceInvoiceXML {
   private readonly COUNTRYCODE: string = "506";
@@ -9,184 +10,233 @@ export class ElectroniceInvoiceXML {
     this.invoice = invoice;
   }
 
-   private generarClave(): string {
+  private pad2(n: number) { return String(n).padStart(2, "0"); }
+  private fmt5(n: number) { return Number(n ?? 0).toFixed(5); }
+  private fmt2(n: number) { return Number(n ?? 0).toFixed(2); }
+
+  private generarClave(): string {
     const fecha = new Date();
-    const day = String(fecha.getDate()).padStart(2, '0');
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = this.pad2(fecha.getDate());
+    const mes = this.pad2(fecha.getMonth() + 1);
     const year = String(fecha.getFullYear()).slice(-2);
-    
-    const id_number = this.invoice.emisor.identificacion.padStart(12, '0');
+
+    const id_number = String(this.invoice.emisor.identificacion ?? "").padStart(12, "0");
     const consecutivo = generateConsecutive(1);
-    const situation = '1';
-    const securityCode = String(Math.floor(Math.random() * 100000000)).padStart(8, '0');
-    
+    const situation = "1";
+    const securityCode = String(Math.floor(Math.random() * 100000000)).padStart(8, "0");
+
     return this.COUNTRYCODE + day + mes + year + id_number + consecutivo + situation + securityCode;
   }
 
-  private generarDetalles(): string {
-    return this.invoice.detalles.map((detalle, idx) => {
-      const lineaSubtotal = detalle.cantidad * detalle.precioUnitario;
-      const montoDescuento = detalle.descuento || 0;
-      const subtotalConDescuento = lineaSubtotal - montoDescuento;
-      const montoImpuesto = detalle.impuesto 
-        ? subtotalConDescuento * (detalle.impuesto.tarifa / 100)
-        : 0;
-      
-      const ivaDevuelto = detalle.ivaDevuelto || 0;
-      const otrosCargos = detalle.otrosCargos || 0;
-      
-      const total = subtotalConDescuento + montoImpuesto + otrosCargos - ivaDevuelto;
-      
-      return `
-    <LineaDetalle>
-      <NumeroLinea>${idx + 1}</NumeroLinea>
-      ${detalle.codigoComercial ? `<CodigoComercial>
-        <Tipo>${detalle.codigoComercial.tipo}</Tipo>
-        <Codigo>${detalle.codigoComercial.codigo}</Codigo>
-      </CodigoComercial>` : ''}
-      <Cantidad>${detalle.cantidad}</Cantidad>
-      <UnidadMedida>${detalle.unidadMedida || 'Sp'}</UnidadMedida>
-      <Detalle>${this.escaparXML(detalle.descripcion)}</Detalle>
-      <PrecioUnitario>${detalle.precioUnitario.toFixed(5)}</PrecioUnitario>
-      <MontoTotal>${lineaSubtotal.toFixed(5)}</MontoTotal>
-      ${montoDescuento > 0 ? `<Descuento>
-        <MontoDescuento>${montoDescuento.toFixed(5)}</MontoDescuento>
-        <NaturalezaDescuento>${this.escaparXML(detalle.naturalezaDescuento || 'Descuento')}</NaturalezaDescuento>
-      </Descuento>` : ''}
-      <SubTotal>${subtotalConDescuento.toFixed(5)}</SubTotal>
-      ${detalle.impuesto ? `<Impuesto>
-        <Codigo>${detalle.impuesto.codigo}</Codigo>
-        <CodigoTarifa>${detalle.impuesto.codigoTarifa}</CodigoTarifa>
-        <Tarifa>${detalle.impuesto.tarifa.toFixed(2)}</Tarifa>
-        <Monto>${montoImpuesto.toFixed(5)}</Monto>
-        ${detalle.impuesto.exoneracion ? `<Exoneracion>
-          <TipoDocumento>${detalle.impuesto.exoneracion.tipoDocumento}</TipoDocumento>
-          <NumeroDocumento>${detalle.impuesto.exoneracion.numeroDocumento}</NumeroDocumento>
-          <NombreInstitucion>${this.escaparXML(detalle.impuesto.exoneracion.nombreInstitucion)}</NombreInstitucion>
-          <FechaEmision>${detalle.impuesto.exoneracion.fechaEmision}</FechaEmision>
-          <PorcentajeExoneracion>${detalle.impuesto.exoneracion.porcentaje}</PorcentajeExoneracion>
-          <MontoExoneracion>${detalle.impuesto.exoneracion.monto.toFixed(5)}</MontoExoneracion>
-        </Exoneracion>` : ''}
-      </Impuesto>` : ''}
-      ${ivaDevuelto > 0 ? `<ImpuestoNeto>${(montoImpuesto - ivaDevuelto).toFixed(5)}</ImpuestoNeto>` : ''}
-      <MontoTotalLinea>${total.toFixed(5)}</MontoTotalLinea>
-    </LineaDetalle>`;
-    }).join('');
+  private escaparXML(texto: string = ""): string {
+    return String(texto)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&apos;");
   }
 
-  private escaparXML(texto: string): string {
-    return texto
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&apos;');
+  private buildLineaXML(detalle: any, idx: number, r: any): string {
+    const hasTax = !!detalle?.impuesto && Number(detalle?.impuesto?.tarifa) > 0;
+
+    return `
+    <LineaDetalle>
+      <NumeroLinea>${idx + 1}</NumeroLinea>
+      ${
+        detalle?.codigoComercial
+          ? `<CodigoComercial>
+        <Tipo>${this.escaparXML(detalle.codigoComercial.tipo)}</Tipo>
+        <Codigo>${this.escaparXML(detalle.codigoComercial.codigo)}</Codigo>
+      </CodigoComercial>`
+          : ""
+      }
+      <Cantidad>${detalle.cantidad}</Cantidad>
+      <UnidadMedida>${this.escaparXML(detalle.unidadMedida || "Sp")}</UnidadMedida>
+      <Detalle>${this.escaparXML(detalle.descripcion)}</Detalle>
+      <PrecioUnitario>${this.fmt5(detalle.precioUnitario)}</PrecioUnitario>
+      <MontoTotal>${this.fmt5(r.lineaSubtotal)}</MontoTotal>
+      ${
+        r.montoDescuento > 0
+          ? `<Descuento>
+        <MontoDescuento>${this.fmt5(r.montoDescuento)}</MontoDescuento>
+        <NaturalezaDescuento>${this.escaparXML(detalle.naturalezaDescuento || "Descuento")}</NaturalezaDescuento>
+      </Descuento>`
+          : ""
+      }
+      <SubTotal>${this.fmt5(r.subtotalConDescuento)}</SubTotal>
+      ${
+        hasTax
+          ? `<Impuesto>
+        <Codigo>${this.escaparXML(detalle.impuesto.codigo)}</Codigo>
+        <CodigoTarifa>${this.escaparXML(detalle.impuesto.codigoTarifa)}</CodigoTarifa>
+        <Tarifa>${this.fmt2(detalle.impuesto.tarifa)}</Tarifa>
+        <Monto>${this.fmt5(r.montoImpuesto)}</Monto>
+        ${
+          detalle.impuesto.exoneracion
+            ? `<Exoneracion>
+          <TipoDocumento>${this.escaparXML(detalle.impuesto.exoneracion.tipoDocumento)}</TipoDocumento>
+          <NumeroDocumento>${this.escaparXML(detalle.impuesto.exoneracion.numeroDocumento)}</NumeroDocumento>
+          <NombreInstitucion>${this.escaparXML(detalle.impuesto.exoneracion.nombreInstitucion)}</NombreInstitucion>
+          <FechaEmision>${this.escaparXML(detalle.impuesto.exoneracion.fechaEmision)}</FechaEmision>
+          <PorcentajeExoneracion>${this.escaparXML(detalle.impuesto.exoneracion.porcentaje)}</PorcentajeExoneracion>
+          <MontoExoneracion>${this.fmt5(detalle.impuesto.exoneracion.monto)}</MontoExoneracion>
+        </Exoneracion>`
+            : ""
+        }
+      </Impuesto>`
+          : ""
+      }
+      ${r.montoIvaDevuelto > 0 ? `<ImpuestoNeto>${this.fmt5(r.montoImpuesto - r.montoIvaDevuelto)}</ImpuestoNeto>` : ""}
+      <MontoTotalLinea>${this.fmt5(r.montoTotalLinea)}</MontoTotalLinea>
+    </LineaDetalle>`;
+  }
+
+  private generarDetallesYTotales() {
+    let TotalVenta = 0;  
+    let TotalDescuentos = 0;
+    let TotalVentaNeta = 0;  
+    let TotalImpuesto = 0; 
+    let TotalIVADevuelto = 0;  
+    let TotalOtrosCargos = 0; 
+    let TotalGravado = 0; 
+    let TotalExento = 0;
+    let TotalComprobante = 0;
+
+    const lineasXML: string[] = [];
+
+    (this.invoice.detalles ?? []).forEach((detalle: any, idx: number) => {
+      const r = calcLine(detalle);
+      TotalVenta += r.lineaSubtotal;
+      TotalDescuentos += r.montoDescuento;
+      TotalVentaNeta += r.subtotalConDescuento;
+      TotalImpuesto += r.montoImpuesto;
+      TotalIVADevuelto += r.montoIvaDevuelto;
+      TotalOtrosCargos += r.montoOtrosCargos;
+
+      if (r.isGravado) TotalGravado += r.subtotalConDescuento;
+      if (r.isExento) TotalExento += r.subtotalConDescuento;
+
+      TotalComprobante += r.montoTotalLinea;
+
+      lineasXML.push(this.buildLineaXML(detalle, idx, r));
+    });
+
+    return {
+      lineasXML: lineasXML.join(""),
+      totales: {
+        TotalVenta,
+        TotalDescuentos,
+        TotalVentaNeta,
+        TotalImpuesto,
+        TotalIVADevuelto,
+        TotalOtrosCargos,
+        TotalGravado,
+        TotalExento,
+        TotalComprobante,
+      },
+    };
   }
 
   generarXML(): { xml: string; clave: string } {
     const clave = this.generarClave();
     const fecha = new Date().toISOString();
-    
-    let subtotal = 0;
-    let totalImpuestos = 0;
-    let totalIVADevuelto = 0;
-    let totalOtrosCargos = 0;
-    
-    this.invoice.detalles.forEach(detalle => {
-      const lineaSubtotal = detalle.cantidad * detalle.precioUnitario;
-      const montoDescuento = detalle.descuento || 0;
-      const subtotalConDescuento = lineaSubtotal - montoDescuento;
-      subtotal += subtotalConDescuento;
-      
-      if (detalle.impuesto) {
-        const montoImpuesto = subtotalConDescuento * (detalle.impuesto.tarifa / 100);
-        totalImpuestos += montoImpuesto;
-      }
-      
-      if (detalle.ivaDevuelto) {
-        totalIVADevuelto += detalle.ivaDevuelto;
-      }
-      
-      if (detalle.otrosCargos) {
-        totalOtrosCargos += detalle.otrosCargos;
-      }
-    });
-    
-    const total = subtotal + totalImpuestos + totalOtrosCargos - totalIVADevuelto;
-    
+
+    const { lineasXML, totales } = this.generarDetallesYTotales();
+
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <FacturaElectronica xmlns="https://cdn.comprobanteselectronicos.go.cr/xml-schemas/v4.4/facturaElectronica" 
                      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
                      xsi:schemaLocation="https://www.hacienda.go.cr/ATV/ComprobanteElectronico/docs/esquemas/2016/v4.4/FacturaElectronica_V4.4.xsd">
   <Clave>${clave}</Clave>
-  <CodigoActividad>${this.invoice.codigoActividad}</CodigoActividad>
-  <NumeroConsecutivo>${this.invoice.consecutivo}</NumeroConsecutivo>
+  <CodigoActividad>${this.escaparXML(this.invoice.codigoActividad)}</CodigoActividad>
+  <NumeroConsecutivo>${this.escaparXML(this.invoice.consecutivo)}</NumeroConsecutivo>
   <FechaEmision>${fecha}</FechaEmision>
+
   <Emisor>
     <Nombre>${this.escaparXML(this.invoice.emisor.nombre)}</Nombre>
     <Identificacion>
-      <Tipo>${this.invoice.emisor.tipoIdentificacion}</Tipo>
-      <Numero>${this.invoice.emisor.identificacion}</Numero>
+      <Tipo>${this.escaparXML(this.invoice.emisor.tipoIdentificacion)}</Tipo>
+      <Numero>${this.escaparXML(this.invoice.emisor.identificacion)}</Numero>
     </Identificacion>
     <NombreComercial>${this.escaparXML(this.invoice.emisor.nombreComercial || this.invoice.emisor.nombre)}</NombreComercial>
     <Ubicacion>
-      <Provincia>${this.invoice.emisor.provincia}</Provincia>
-      <Canton>${this.invoice.emisor.canton}</Canton>
-      <Distrito>${this.invoice.emisor.distrito}</Distrito>
+      <Provincia>${this.escaparXML(this.invoice.emisor.provincia)}</Provincia>
+      <Canton>${this.escaparXML(this.invoice.emisor.canton)}</Canton>
+      <Distrito>${this.escaparXML(this.invoice.emisor.distrito)}</Distrito>
       <OtrasSenas>${this.escaparXML(this.invoice.emisor.direccion)}</OtrasSenas>
     </Ubicacion>
     <Telefono>
       <CodigoPais>506</CodigoPais>
-      <NumTelefono>${this.invoice.emisor.telefono}</NumTelefono>
+      <NumTelefono>${this.escaparXML(this.invoice.emisor.telefono)}</NumTelefono>
     </Telefono>
-    <CorreoElectronico>${this.invoice.emisor.email}</CorreoElectronico>
+    <CorreoElectronico>${this.escaparXML(this.invoice.emisor.email)}</CorreoElectronico>
   </Emisor>
+
   <Receptor>
     <Nombre>${this.escaparXML(this.invoice.receptor.nombre)}</Nombre>
     <Identificacion>
-      <Tipo>${this.invoice.receptor.tipoIdentificacion}</Tipo>
-      <Numero>${this.invoice.receptor.identificacion}</Numero>
+      <Tipo>${this.escaparXML(this.invoice.receptor.tipoIdentificacion)}</Tipo>
+      <Numero>${this.escaparXML(this.invoice.receptor.identificacion)}</Numero>
     </Identificacion>
-    ${this.invoice.receptor.telefono ? `<Telefono>
+    ${
+      this.invoice.receptor.telefono
+        ? `<Telefono>
       <CodigoPais>506</CodigoPais>
-      <NumTelefono>${this.invoice.receptor.telefono}</NumTelefono>
-    </Telefono>` : ''}
-    <CorreoElectronico>${this.invoice.receptor.email}</CorreoElectronico>
+      <NumTelefono>${this.escaparXML(this.invoice.receptor.telefono)}</NumTelefono>
+    </Telefono>`
+        : ""
+    }
+    <CorreoElectronico>${this.escaparXML(this.invoice.receptor.email)}</CorreoElectronico>
   </Receptor>
-  <CondicionVenta>${this.invoice.condicionVenta || '01'}</CondicionVenta>
-  <MedioPago>${this.invoice.medioPago || '01'}</MedioPago>
+
+  <CondicionVenta>${this.escaparXML(this.invoice.condicionVenta || "01")}</CondicionVenta>
+  <MedioPago>${this.escaparXML(this.invoice.medioPago || "01")}</MedioPago>
+
   <DetalleServicio>
-    ${this.generarDetalles()}
+    ${lineasXML}
   </DetalleServicio>
-  ${totalOtrosCargos > 0 ? `<OtrosCargos>
+
+  ${
+    totales.TotalOtrosCargos > 0
+      ? `<OtrosCargos>
     <TipoDocumento>01</TipoDocumento>
     <Detalle>Otros cargos aplicables</Detalle>
-    <MontoCargo>${totalOtrosCargos.toFixed(5)}</MontoCargo>
-  </OtrosCargos>` : ''}
+    <MontoCargo>${this.fmt5(totales.TotalOtrosCargos)}</MontoCargo>
+  </OtrosCargos>`
+      : ""
+  }
+
   <ResumenFactura>
     <CodigoTipoMoneda>
-      <CodigoMoneda>${this.invoice.moneda || 'CRC'}</CodigoMoneda>
+      <CodigoMoneda>${this.escaparXML(this.invoice.moneda || "CRC")}</CodigoMoneda>
       <TipoCambio>1.00000</TipoCambio>
     </CodigoTipoMoneda>
-    <TotalServGravados>${subtotal.toFixed(5)}</TotalServGravados>
-    <TotalServExentos>0.00000</TotalServExentos>
+
+    <TotalServGravados>${this.fmt5(totales.TotalGravado)}</TotalServGravados>
+    <TotalServExentos>${this.fmt5(totales.TotalExento)}</TotalServExentos>
     <TotalServExonerado>0.00000</TotalServExonerado>
+
     <TotalMercanciasGravadas>0.00000</TotalMercanciasGravadas>
     <TotalMercanciasExentas>0.00000</TotalMercanciasExentas>
     <TotalMercExonerada>0.00000</TotalMercExonerada>
-    <TotalGravado>${subtotal.toFixed(5)}</TotalGravado>
-    <TotalExento>0.00000</TotalExento>
+
+    <TotalGravado>${this.fmt5(totales.TotalGravado)}</TotalGravado>
+    <TotalExento>${this.fmt5(totales.TotalExento)}</TotalExento>
     <TotalExonerado>0.00000</TotalExonerado>
-    <TotalVenta>${subtotal.toFixed(5)}</TotalVenta>
-    <TotalDescuentos>0.00000</TotalDescuentos>
-    <TotalVentaNeta>${subtotal.toFixed(5)}</TotalVentaNeta>
-    <TotalImpuesto>${totalImpuestos.toFixed(5)}</TotalImpuesto>
-    ${totalIVADevuelto > 0 ? `<TotalIVADevuelto>${totalIVADevuelto.toFixed(5)}</TotalIVADevuelto>` : ''}
-    ${totalOtrosCargos > 0 ? `<TotalOtrosCargos>${totalOtrosCargos.toFixed(5)}</TotalOtrosCargos>` : ''}
-    <TotalComprobante>${total.toFixed(5)}</TotalComprobante>
+
+    <TotalVenta>${this.fmt5(totales.TotalVenta)}</TotalVenta>
+    <TotalDescuentos>${this.fmt5(totales.TotalDescuentos)}</TotalDescuentos>
+    <TotalVentaNeta>${this.fmt5(totales.TotalVentaNeta)}</TotalVentaNeta>
+
+    <TotalImpuesto>${this.fmt5(totales.TotalImpuesto)}</TotalImpuesto>
+    ${totales.TotalIVADevuelto > 0 ? `<TotalIVADevuelto>${this.fmt5(totales.TotalIVADevuelto)}</TotalIVADevuelto>` : ""}
+    ${totales.TotalOtrosCargos > 0 ? `<TotalOtrosCargos>${this.fmt5(totales.TotalOtrosCargos)}</TotalOtrosCargos>` : ""}
+
+    <TotalComprobante>${this.fmt5(totales.TotalComprobante)}</TotalComprobante>
   </ResumenFactura>
 </FacturaElectronica>`;
-    
+
     return { xml, clave };
   }
 }
