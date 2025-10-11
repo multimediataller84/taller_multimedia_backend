@@ -75,6 +75,18 @@ export class CashRegisterRepository implements ICashRegisterRepository {
     }
   };
 
+  getOpen = async (): Promise<TCashRegister[]> => {
+    try {
+      const cashRegister = await this.cashRegisterService.getOpen();
+      if (cashRegister.length === 0) {
+        throw new Error("sources not found");
+      }
+      return cashRegister;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   patch = async (id: number, data: TCashRegister): Promise<TCashRegister> => {
     try {
       const cashRegister = await this.cashRegisterService.patch(id, data);

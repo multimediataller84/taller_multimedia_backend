@@ -1,4 +1,5 @@
 import Invoice from "../../Invoice/domain/models/InvoiceModel.js";
+import Role from "../../Role/domain/models/RoleModel.js";
 import User from "../../User/domain/models/UserModel.js";
 import type { ICashRegisterService } from "../domain/interfaces/ICashRegisterService.js";
 import CashRegister from "../domain/models/CashRegisterModel.js";
@@ -151,6 +152,35 @@ export class CashRegisterService implements ICashRegisterService {
       amount: data.closing_amount,
       status: "closed" as const,
     });
+  };
+
+  getOpen = async (): Promise<TCashRegister[]> => {
+    try {
+      const register = await CashRegister.findAll({
+        where: { status: "open" },
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "name", "role_id"],
+            include: [
+              {
+                model: Role,
+                as: "role",
+                attributes: ["id", "name"],
+              },
+            ],
+          },
+        ],
+      });
+
+      if (register.length === 0) {
+        throw new Error("No open cash registers found");
+      }
+      return register;
+    } catch (error) {
+      throw new Error("error: " + error);
+    }
   };
 
   delete = async (id: number): Promise<TCashRegister> => {

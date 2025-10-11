@@ -8,6 +8,7 @@ import {
 import { sequelize } from "../../../../database/connection.js";
 import type { TStatus } from "../types/TStatus.js";
 import type Invoice from "../../../Invoice/domain/models/InvoiceModel.js";
+import type User from "../../../User/domain/models/UserModel.js";
 
 class CashRegister extends Model<
   InferAttributes<CashRegister>,
@@ -21,6 +22,7 @@ class CashRegister extends Model<
   declare closing_amount: number | null;
   declare status: TStatus;
   declare user_id: number;
+  declare user?: User;
   declare invoices?: Invoice[];
 }
 
