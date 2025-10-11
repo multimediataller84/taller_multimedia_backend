@@ -10,6 +10,9 @@ import { sequelize } from "../../../database/connection.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
 import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
 import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js";
+import { PDFGenerator } from "../../ElectronicInvoice/services/PDFGenerator.js";
+import { jsonTest } from "../../ElectronicInvoice/utils/testInvoice.js";
+import path from "path";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -112,6 +115,14 @@ export class InvoiceService implements IInvoiceServices {
       return invoice;
     } catch (error) {
       throw error;
+    }
+  };
+
+  getPdf = async (name: string): Promise<string> => {
+    try {
+      return path.join(process.cwd(), "src/invoices", `${name}`);
+    } catch (error) {
+      throw error
     }
   };
 
@@ -258,7 +269,8 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       await transaction.commit();
-
+      const invoicePDF = new PDFGenerator(jsonTest);
+      invoicePDF.generate(uuid + ".pdf");
       const updateInvoice = await this.get(uuid);
 
       return updateInvoice ?? invoice;

@@ -23,6 +23,7 @@ certificates/*.pem
 # Facturas generadas
 invoices/*.xml
 invoices/*.json
+invoices/*.pdf
 
 # Editor directories and files
 .vscode/*

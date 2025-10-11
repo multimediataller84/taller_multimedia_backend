@@ -29,15 +29,120 @@ export const jsonTest = {
         tipo: "01",
         codigo: "PROD001",
       },
-      descripcion: "Servicio de desarrollo web",
-      cantidad: 10,
-      unidadMedida: "Sp",
-      precioUnitario: 50000,
+      descripcion: "Arroz blanco 1 kg",
+      cantidad: 2,
+      unidadMedida: "Unid",
+      precioUnitario: 950,
       impuesto: {
         codigo: "01",
         codigoTarifa: "08",
         tarifa: 13,
       },
     },
+    {
+      codigoComercial: {
+        tipo: "01",
+        codigo: "PROD002",
+      },
+      descripcion: "Frijoles negros 1 kg",
+      cantidad: 1,
+      unidadMedida: "Unid",
+      precioUnitario: 1200,
+      impuesto: {
+        codigo: "01",
+        codigoTarifa: "08",
+        tarifa: 13,
+      },
+    },
+    {
+      codigoComercial: {
+        tipo: "01",
+        codigo: "PROD003",
+      },
+      descripcion: "Aceite vegetal 900 ml",
+      cantidad: 1,
+      unidadMedida: "Unid",
+      precioUnitario: 1850,
+      impuesto: {
+        codigo: "01",
+        codigoTarifa: "08",
+        tarifa: 13,
+      },
+    },
+    {
+      codigoComercial: {
+        tipo: "01",
+        codigo: "PROD004",
+      },
+      descripcion: "Azúcar cruda 2 kg",
+      cantidad: 1,
+      unidadMedida: "Unid",
+      precioUnitario: 1600,
+      impuesto: {
+        codigo: "01",
+        codigoTarifa: "08",
+        tarifa: 13,
+      },
+    },
+    {
+      codigoComercial: {
+        tipo: "01",
+        codigo: "PROD005",
+      },
+      descripcion: "Leche entera 1 L",
+      cantidad: 3,
+      unidadMedida: "Unid",
+      precioUnitario: 850,
+      impuesto: {
+        codigo: "01",
+        codigoTarifa: "08",
+        tarifa: 13,
+      },
+    },
+    {
+      codigoComercial: {
+        tipo: "01",
+        codigo: "PROD006",
+      },
+      descripcion: "Huevos grandes (cartón 12 unidades)",
+      cantidad: 1,
+      unidadMedida: "Unid",
+      precioUnitario: 1800,
+      impuesto: {
+        codigo: "01",
+        codigoTarifa: "08",
+        tarifa: 0,
+      },
+    },
+    {
+      codigoComercial: {
+        tipo: "01",
+        codigo: "PROD007",
+      },
+      descripcion: "Pan blanco 500 g",
+      cantidad: 1,
+      unidadMedida: "Unid",
+      precioUnitario: 1200,
+      impuesto: {
+        codigo: "01",
+        codigoTarifa: "08",
+        tarifa: 0,
+      },
+    },
+    {
+      codigoComercial: {
+        tipo: "01",
+        codigo: "PROD008",
+      },
+      descripcion: "Café molido 500 g",
+      cantidad: 1,
+      unidadMedida: "Unid",
+      precioUnitario: 2850,
+      impuesto: {
+        codigo: "01",
+        codigoTarifa: "08",
+        tarifa: 13,
+      },
+    }
   ],
 };

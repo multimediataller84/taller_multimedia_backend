@@ -7,4 +7,5 @@ export interface IInvoiceServices {
   post: (data: TInvoice) => Promise<TInvoiceEndpoint>;
   delete: (id: number) => Promise<TInvoiceEndpoint>;
   patch: (id: number, data: TInvoice) => Promise<TInvoiceEndpoint>;
+  getPdf: (name: string) => Promise<string>;
 }
