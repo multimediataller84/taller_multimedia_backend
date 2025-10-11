@@ -8,4 +8,5 @@ export interface ICashRegisterController {
   delete: (req: Request, res: Response) => Promise<void>;
   open: (req: Request, res: Response) => Promise<void>;
   close: (req: Request, res: Response) => Promise<void>;
+  getOpen: (req: Request, res: Response) => Promise<void>;
 }

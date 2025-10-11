@@ -2,6 +2,7 @@ import { CloseCashRegisterUseCase } from "../domain/useCases/closeCashRegisterUs
 import { DeleteCashRegisterUseCase } from "../domain/useCases/deleteCashRegisterUseCase.js";
 import { GetAllCashRegisterUseCase } from "../domain/useCases/getAllCashRegisterUseCase.js";
 import { GetCashRegisterUseCase } from "../domain/useCases/getCashRegisterUseCase.js";
+import { GetOpenCashRegisterUseCase } from "../domain/useCases/getOpenCashRegisterUseCase.js";
 import { OpenCashRegisterUseCase } from "../domain/useCases/openCashRegisterUseCase.js";
 import { PatchCashRegisterUseCase } from "../domain/useCases/patchCashRegisterUseCase.js";
 import { PostCashRegisterUseCase } from "../domain/useCases/postCashRegisterUseCase.js";
@@ -15,6 +16,7 @@ export class CashRegisterUseCasesController {
   delete: DeleteCashRegisterUseCase;
   open: OpenCashRegisterUseCase;
   close: CloseCashRegisterUseCase;
+  getOpen: GetOpenCashRegisterUseCase;
 
   constructor(private readonly repository: CashRegisterRepository) {
     this.get = new GetCashRegisterUseCase(this.repository);
@@ -24,5 +26,6 @@ export class CashRegisterUseCasesController {
     this.delete = new DeleteCashRegisterUseCase(this.repository);
     this.open = new OpenCashRegisterUseCase(this.repository);
     this.close = new CloseCashRegisterUseCase(this.repository); 
+    this.getOpen = new GetOpenCashRegisterUseCase(this.repository);
   }
 }

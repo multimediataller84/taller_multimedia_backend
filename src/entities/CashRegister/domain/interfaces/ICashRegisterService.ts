@@ -9,5 +9,6 @@ export interface ICashRegisterService {
   patch: (id: number, data: TCashRegister) => Promise<TCashRegister>;
   delete: (id: number) => Promise<TCashRegister>;
   open: (id: number, data: TOpenRegister) => Promise<TCashRegister> 
-  close: (id:number, data: TCloseRegister) => Promise<TCashRegister> 
+  close: (id:number, data: TCloseRegister) => Promise<TCashRegister>;
+  getOpen: () => Promise<TCashRegister[]>;
 }

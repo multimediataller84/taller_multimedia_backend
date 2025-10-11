@@ -1,4 +1,3 @@
-// swagger.js
 import swaggerJSDoc from "swagger-jsdoc";
 import { config } from "../utilities/config.js";
 import { fileURLToPath } from "url";
