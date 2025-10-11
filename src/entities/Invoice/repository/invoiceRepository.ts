@@ -39,6 +39,18 @@ export class InvoiceRepository implements IInvoiceRepository {
     }
   };
 
+  getPdf = async (name: string): Promise<string> => {
+    try {
+      const path = await this.invoiceService.getPdf(name);
+      if (!path) {
+        throw new Error("source not found");
+      }
+      return path;
+    } catch (error) {
+      throw error;
+    }
+  };
+
   post = async (data: TInvoice): Promise<TInvoiceEndpoint> => {
     try {
       const invoice = await this.invoiceService.post(data);

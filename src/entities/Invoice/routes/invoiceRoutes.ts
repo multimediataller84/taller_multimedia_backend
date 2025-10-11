@@ -137,6 +137,8 @@ invoiceRouter.patch("/:id", invoiceController.patch);
  */
 invoiceRouter.delete("/:id", invoiceController.delete);
 
+invoiceRouter.get("/pdf/:name", invoiceController.getPdf);
+
 export default invoiceRouter;
 
 /**

@@ -1,6 +1,7 @@
 import { DeleteInvoiceUseCase } from "../domain/useCases/deleteInvoiceUseCase.js";
 import { GetAllInvoiceUseCase } from "../domain/useCases/getAllInvoiceUseCase.js";
 import { GetInvoiceUseCase } from "../domain/useCases/getInvoiceUseCase.js";
+import { GetPdfInvoiceUseCase } from "../domain/useCases/getPdfInvoiceUseCase.js";
 
 import { PatchInvoiceUseCase } from "../domain/useCases/patchInvoiceUseCase.js";
 import { PostInvoiceUseCase } from "../domain/useCases/postInvoiceUseCase.js";
@@ -12,6 +13,7 @@ export class InvoiceUseCasesController {
   post: PostInvoiceUseCase;
   patch: PatchInvoiceUseCase;
   delete: DeleteInvoiceUseCase;
+  getPdf: GetPdfInvoiceUseCase;
 
   constructor(private readonly repository: InvoiceRepository) {
     this.get = new GetInvoiceUseCase(this.repository);
@@ -19,5 +21,6 @@ export class InvoiceUseCasesController {
     this.post = new PostInvoiceUseCase(this.repository);
     this.patch = new PatchInvoiceUseCase(this.repository);
     this.delete = new DeleteInvoiceUseCase(this.repository);
+    this.getPdf = new GetPdfInvoiceUseCase(this.repository);
   }
 }

@@ -22,20 +22,15 @@ export class CashRegisterService implements ICashRegisterService {
       const cashRegister = await CashRegister.findByPk(id, {
         include: [
           {
-            model: Invoice,
-            as: "invoices",
-            attributes: [
-              "id",
-              "customer_id",
-              "due_date",
-              "subtotal",
-              "tax_total",
-              "total",
-              "amount_paid",
-              "payment_method",
-              "status",
-              "invoice_number",
-              "cash_register_id",
+            model: User,
+            as: "user",
+            attributes: ["id", "name", "role_id"],
+            include: [
+              {
+                model: Role,
+                as: "role",
+                attributes: ["id", "name"],
+              },
             ],
           },
         ],
@@ -54,20 +49,15 @@ export class CashRegisterService implements ICashRegisterService {
       const cashRegisters = await CashRegister.findAll({
         include: [
           {
-            model: Invoice,
-            as: "invoices",
-            attributes: [
-              "id",
-              "customer_id",
-              "due_date",
-              "subtotal",
-              "tax_total",
-              "total",
-              "amount_paid",
-              "payment_method",
-              "status",
-              "invoice_number",
-              "cash_register_id",
+            model: User,
+            as: "user",
+            attributes: ["id", "name", "role_id"],
+            include: [
+              {
+                model: Role,
+                as: "role",
+                attributes: ["id", "name"],
+              },
             ],
           },
         ],
@@ -90,7 +80,22 @@ export class CashRegisterService implements ICashRegisterService {
       const exists = await CashRegister.findOne({ where: { user_id } });
       if (exists) throw new Error("this user have a current cash registered");
       data.amount = data.opening_amount;
-      const cashRegister = await CashRegister.create(data);
+      const cashRegister = await CashRegister.create(data, {
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "name", "role_id"],
+            include: [
+              {
+                model: Role,
+                as: "role",
+                attributes: ["id", "name"],
+              },
+            ],
+          },
+        ],
+      });
       return cashRegister;
     } catch (error) {
       throw error;
@@ -119,6 +124,11 @@ export class CashRegisterService implements ICashRegisterService {
 
     if (exists) {
       throw new Error("User already have opened cash register");
+    }
+
+    const user = await User.findByPk(data.user_id);
+    if (!user) {
+      throw new Error("User dont exist");
     }
 
     const register = await CashRegister.findByPk(id);
@@ -188,20 +198,15 @@ export class CashRegisterService implements ICashRegisterService {
       const cashRegister = await CashRegister.findByPk(id, {
         include: [
           {
-            model: Invoice,
-            as: "invoices",
-            attributes: [
-              "id",
-              "customer_id",
-              "due_date",
-              "subtotal",
-              "tax_total",
-              "total",
-              "amount_paid",
-              "payment_method",
-              "status",
-              "invoice_number",
-              "cash_register_id",
+            model: User,
+            as: "user",
+            attributes: ["id", "name", "role_id"],
+            include: [
+              {
+                model: Role,
+                as: "role",
+                attributes: ["id", "name"],
+              },
             ],
           },
         ],

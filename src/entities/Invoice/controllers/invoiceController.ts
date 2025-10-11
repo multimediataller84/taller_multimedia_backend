@@ -1,7 +1,7 @@
 import type { IInvoiceController } from "../domain/interfaces/IInvoiceController.js";
 import { InvoiceRepository } from "../repository/invoiceRepository.js";
 import type { Request, Response } from "express";
-import { InvoiceUseCasesController} from "./invoiceUseCasesController.js";
+import { InvoiceUseCasesController } from "./invoiceUseCasesController.js";
 
 export class InvoiceController implements IInvoiceController {
   private static instance: InvoiceController;
@@ -60,6 +60,22 @@ export class InvoiceController implements IInvoiceController {
     try {
       const result = await this.useCases.delete.execute(Number(req.params.id));
       res.status(200).json(result);
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  };
+
+  getPdf = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const filePath = await this.useCases.getPdf.execute(
+        String(req.params.name)
+      );
+      res.status(200).sendFile(filePath, (err) => {
+        if (err) {
+          console.error(err);
+          res.status(404).send("Source not found");
+        }
+      });
     } catch (error: any) {
       res.status(404).json({ error: error.message });
     }

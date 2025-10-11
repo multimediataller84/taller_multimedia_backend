@@ -8,6 +8,7 @@ import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import { config } from "../../../utilities/config.js";
 import type { TPayload } from "../domain/types/TPayload.js";
 import Role from "../../Role/domain/models/RoleModel.js";
+import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js";
 
 export class UserService implements IUserServices {
   private static instance: UserService;
@@ -98,6 +99,15 @@ export class UserService implements IUserServices {
       if (!user) {
         throw new Error("User not found");
       }
+
+      const cashRegister = await CashRegister.findOne({
+        where: { user_id: id },
+      });
+      if (cashRegister)
+        throw new Error(
+          "Cannot delete an employee associated with a cash register"
+        );
+
       await user.destroy();
       return user;
     } catch (error) {

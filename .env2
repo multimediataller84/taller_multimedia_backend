@@ -1,0 +1,17 @@
+HOST= localhost
+PORT= 3000
+USER= postgres
+PASSWORD=root
+DATABASE= prueba
+CORS_ORIGIN= http://localhost:5173
+JWT_ACCESS_SECRET=as54fg43egxcxclalcjzkkzkx<x
+JWT_EXPIRES_IN=1h
+NODE_ENV=development
+URL= http://localhost:3000/api
+DB_PORT= 5432
+PY_API =http://127.0.0.1:8000
+HACIENDA_API_SANDBOX =https://api-sandbox.comprobanteselectronicos.go.cr/recepcion/v1/recepcion
+ENVIROMENT=stag
+HACIENDA_TOKEN=token_de_prueba
+CERTIFICATE_PATH=./certificates/certificate.p12
+CERTIFICATE_PASSWORD=certpasss
