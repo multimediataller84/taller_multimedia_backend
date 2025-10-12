@@ -300,7 +300,10 @@ export class InvoiceService implements IInvoiceServices {
 
       return { name: uuid, file: buffer };
     } catch (error) {
-      await transaction.rollback();
+      const anyTransaction = transaction as any;
+      if (!anyTransaction.finished) {
+        await transaction.rollback();
+      }
       throw error;
     }
   };

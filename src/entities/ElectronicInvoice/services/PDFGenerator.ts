@@ -89,9 +89,9 @@ export class PDFGenerator {
       .moveDown(0.3)
       .fontSize(8)
       .font("Helvetica-Bold")
-      .text("Cód", 15)
+      .text("Cód", 10)
       .moveUp(1)
-      .text("Descripción", 40)
+      .text("Descripción", 45)
       .moveUp(1)
       .text("Cant", 100)
       .moveUp(1)
@@ -112,27 +112,50 @@ export class PDFGenerator {
         { align: "center" }
       );
 
+    let y = doc.y;
+    const lineHeight = 10;
+
     detalles.forEach((item: any) => {
       const totalLinea =
         item.cantidad * item.precioUnitario * (1 + item.impuesto.tarifa / 100);
 
-      doc
-        .fontSize(7)
-        .text(
-          `${item.codigoComercial.codigo}  ${item.descripcion.substring(
-            0,
-            25
-          )}  ${item.cantidad}  ${item.precioUnitario.toFixed(0)}  ${
-            item.impuesto.tarifa
-          }%  ${totalLinea.toFixed(0)}`
-        )
-        .moveDown(0.3);
+      doc.fontSize(7);
+
+      doc.text(
+        `${String(item.codigoComercial.codigo).substring(0, 6)}`,
+        10,
+        y,
+        { width: 30 }
+      );
+      doc.text(item.descripcion, 45, y, { width: 60 });
+      doc.text(`${item.cantidad}`, 102, y, { width: 15, align: "right" });
+      doc.text(`${item.precioUnitario.toFixed(0)}`, 125, y, {
+        width: 25,
+        align: "right",
+      });
+      doc.text(`${item.impuesto.tarifa}%`, 159, y, {
+        width: 20,
+        align: "right",
+      });
+      doc.text(`${totalLinea.toFixed(0)}`, 183, y, {
+        width: 25,
+        align: "right",
+      });
+
+      const alturaDescripcion = doc.heightOfString(item.descripcion, {
+        width: 60,
+      });
+
+      y += Math.max(alturaDescripcion, lineHeight);
     });
 
     doc
+      .moveDown(0.3)
       .fontSize(8)
       .text(
         "-----------------------------------------------------------------------------",
+        10,
+        doc.y,
         { align: "center" }
       )
       .moveDown(0.2);
