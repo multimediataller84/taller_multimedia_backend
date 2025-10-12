@@ -27,7 +27,7 @@ export const jsonTest = {
     {
       codigoComercial: {
         tipo: "01",
-        codigo: "PROD001",
+        codigo: "PROD1",
       },
       descripcion: "Arroz blanco 1 kg",
       cantidad: 2,
@@ -42,7 +42,7 @@ export const jsonTest = {
     {
       codigoComercial: {
         tipo: "01",
-        codigo: "PROD002",
+        codigo: "PROD2",
       },
       descripcion: "Frijoles negros 1 kg",
       cantidad: 1,
@@ -57,7 +57,7 @@ export const jsonTest = {
     {
       codigoComercial: {
         tipo: "01",
-        codigo: "PROD003",
+        codigo: "PROD3",
       },
       descripcion: "Aceite vegetal 900 ml",
       cantidad: 1,
@@ -72,7 +72,7 @@ export const jsonTest = {
     {
       codigoComercial: {
         tipo: "01",
-        codigo: "PROD004",
+        codigo: "PROD4",
       },
       descripcion: "Azúcar cruda 2 kg",
       cantidad: 1,
@@ -87,7 +87,7 @@ export const jsonTest = {
     {
       codigoComercial: {
         tipo: "01",
-        codigo: "PROD005",
+        codigo: "PROD5",
       },
       descripcion: "Leche entera 1 L",
       cantidad: 3,
@@ -102,9 +102,9 @@ export const jsonTest = {
     {
       codigoComercial: {
         tipo: "01",
-        codigo: "PROD006",
+        codigo: "PROD6",
       },
-      descripcion: "Huevos grandes (cartón 12 unidades)",
+      descripcion: "Huevos grandes (cartón 12 unidades) grandes (cartón 12 unidades)",
       cantidad: 1,
       unidadMedida: "Unid",
       precioUnitario: 1800,
@@ -117,7 +117,7 @@ export const jsonTest = {
     {
       codigoComercial: {
         tipo: "01",
-        codigo: "PROD007",
+        codigo: "PROD0007",
       },
       descripcion: "Pan blanco 500 g",
       cantidad: 1,
@@ -132,7 +132,7 @@ export const jsonTest = {
     {
       codigoComercial: {
         tipo: "01",
-        codigo: "PROD008",
+        codigo: "PROD80",
       },
       descripcion: "Café molido 500 g",
       cantidad: 1,
