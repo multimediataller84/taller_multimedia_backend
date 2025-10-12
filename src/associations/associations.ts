@@ -76,4 +76,8 @@ export function setupAssociations() {
     foreignKey: "cash_register_id",
     as: "cashRegister",
   });
+
+  // seguimiento de las facturas por empleado
+  Invoice.belongsTo(User, { foreignKey: "user_id", as: "user" });
+  User.hasMany(Invoice, { foreignKey: "user_id", as: "invoices" });
 }
