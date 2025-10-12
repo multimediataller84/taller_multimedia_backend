@@ -6,5 +6,4 @@ export interface IInvoiceController {
   post: (req: Request, res: Response) => Promise<void>;
   patch: (req: Request, res: Response) => Promise<void>;
   delete: (req: Request, res: Response) => Promise<void>;
-  getPdf: (req: Request, res: Response) => Promise<void>;
 }

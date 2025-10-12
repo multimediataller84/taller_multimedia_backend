@@ -1,5 +1,6 @@
 import type { IInvoiceRepository } from "../domain/interfaces/IInvoiceRepository.js";
 import type Invoice from "../domain/models/InvoiceModel.js";
+import type { TBuffer } from "../domain/types/TBuffer.js";
 import type { ProdutList, TInvoice } from "../domain/types/TInvoice.js";
 import type { TInvoiceEndpoint } from "../domain/types/TInvoiceEndpoint.js";
 import { InvoiceService } from "../services/invoiceService.js";
@@ -39,23 +40,11 @@ export class InvoiceRepository implements IInvoiceRepository {
     }
   };
 
-  getPdf = async (name: string): Promise<string> => {
-    try {
-      const path = await this.invoiceService.getPdf(name);
-      if (!path) {
-        throw new Error("source not found");
-      }
-      return path;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  post = async (data: TInvoice): Promise<TInvoiceEndpoint> => {
+  post = async (data: TInvoice): Promise<TBuffer> => {
     try {
       const invoice = await this.invoiceService.post(data);
       if (!invoice) {
-        throw new Error("error at create customer");
+        throw new Error("error at create invoice");
       }
       return invoice;
     } catch (error) {

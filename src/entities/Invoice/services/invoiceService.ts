@@ -13,6 +13,7 @@ import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js"
 import { PDFGenerator } from "../../ElectronicInvoice/services/PDFGenerator.js";
 import { jsonTest } from "../../ElectronicInvoice/utils/testInvoice.js";
 import path from "path";
+import type { TBuffer } from "../domain/types/TBuffer.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -118,15 +119,7 @@ export class InvoiceService implements IInvoiceServices {
     }
   };
 
-  getPdf = async (name: string): Promise<string> => {
-    try {
-      return path.join(process.cwd(), "src/invoices", `${name}`);
-    } catch (error) {
-      throw error
-    }
-  };
-
-  post = async (data: TInvoice): Promise<TInvoiceEndpoint> => {
+  post = async (data: TInvoice): Promise<TBuffer> => {
     const transaction = await sequelize.transaction();
 
     try {
@@ -270,10 +263,9 @@ export class InvoiceService implements IInvoiceServices {
 
       await transaction.commit();
       const invoicePDF = new PDFGenerator(jsonTest);
-      invoicePDF.generate(uuid + ".pdf");
-      const updateInvoice = await this.get(uuid);
+      const buffer: Buffer = await invoicePDF.generate();
 
-      return updateInvoice ?? invoice;
+      return { name: uuid, file: buffer };
     } catch (error) {
       await transaction.rollback();
       throw error;
