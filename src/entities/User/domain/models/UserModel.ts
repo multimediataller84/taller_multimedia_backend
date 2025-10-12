@@ -7,6 +7,7 @@ import {
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
 import type Role from "../../../Role/domain/models/RoleModel.js";
+import type Invoice from "../../../Invoice/domain/models/InvoiceModel.js";
 
 class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare id: CreationOptional<number>;
@@ -22,6 +23,7 @@ class User extends Model<InferAttributes<User>, InferCreationAttributes<User>> {
   declare updatedAt: CreationOptional<Date>;
   declare role_id: number;
   declare role?: Role;
+  declare invoices?: Invoice[];
 }
 
 User.init(
