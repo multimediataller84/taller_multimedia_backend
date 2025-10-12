@@ -37,10 +37,16 @@ export class InvoiceController implements IInvoiceController {
 
   post = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.useCases.post.execute(req.body);
-      res.status(200).json(result);
+      const { name, file } = await this.useCases.post.execute(req.body);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="invoice-${name}.pdf"`
+      );
+      const base64File = file.toString("base64");
+      res.status(200).send({name, base64File});
     } catch (error: any) {
-      res.status(403).json({ error: error.message });
+      res.status(404).json({ error: error.message });
     }
   };
 
@@ -60,22 +66,6 @@ export class InvoiceController implements IInvoiceController {
     try {
       const result = await this.useCases.delete.execute(Number(req.params.id));
       res.status(200).json(result);
-    } catch (error: any) {
-      res.status(404).json({ error: error.message });
-    }
-  };
-
-  getPdf = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const filePath = await this.useCases.getPdf.execute(
-        String(req.params.name)
-      );
-      res.status(200).sendFile(filePath, (err) => {
-        if (err) {
-          console.error(err);
-          res.status(404).send("Source not found");
-        }
-      });
     } catch (error: any) {
       res.status(404).json({ error: error.message });
     }

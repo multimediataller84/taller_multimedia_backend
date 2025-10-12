@@ -1,16 +1,8 @@
 import PDFDocument from "pdfkit";
-import fs from "fs";
-import path from "path";
-
 export class PDFGenerator {
-  private readonly PATH = "./src/invoices";
   constructor(readonly invoice: any) {}
 
-  generate(outputPath = "invoice.pdf") {
-    if (!fs.existsSync(this.PATH)) {
-      fs.mkdirSync(this.PATH, { recursive: true });
-    }
-
+  async generate(): Promise<Buffer> {
     const baseHeight = 300;
     const lineHeight = 22;
     const detalles = this.invoice.detalles || [];
@@ -21,8 +13,12 @@ export class PDFGenerator {
       margins: { top: 10, left: 10, right: 10, bottom: 10 },
     });
 
-    const stream = fs.createWriteStream(path.join(this.PATH, outputPath));
-    doc.pipe(stream);
+    const chunks: Buffer[] = [];
+
+    doc.on("data", (chunk) => chunks.push(chunk));
+    const endPromise = new Promise<Buffer>((resolve) => {
+      doc.on("end", () => resolve(Buffer.concat(chunks)));
+    });
 
     this.addHeader(doc);
     this.addIssuerAndReceiver(doc);
@@ -32,11 +28,7 @@ export class PDFGenerator {
 
     doc.end();
 
-    stream.on("finish", () =>
-      console.log(`Invoice generated in ${this.PATH}/${outputPath}`)
-    );
-
-    return stream;
+    return endPromise;
   }
 
   private addHeader(doc: PDFKit.PDFDocument) {
@@ -51,10 +43,11 @@ export class PDFGenerator {
       .moveDown(0.3)
       .fontSize(8)
       .font("Helvetica")
+      .text(`Tramo La Maravilla S.A.`, { align: "center" })
       .text(`Cédula Jurídica: ${emisor.identificacion}`, { align: "center" })
       .text(`Actividad Económica: ${codigoActividad}`, { align: "center" })
       .text(emisor.direccion, { align: "center" })
-      .text(`Tel: ${emisor.telefono}`, { align: "center" })
+      .text(`Tel: +506 ${emisor.telefono}`, { align: "center" })
       .text(`Email: ${emisor.email}`, { align: "center" })
       .moveDown(0.5);
 
@@ -64,7 +57,10 @@ export class PDFGenerator {
       .text(`Factura N°: ${consecutivo}`, { align: "center" })
       .moveDown(0.3)
       .font("Helvetica")
-      .text("--------------------------------------", { align: "center" });
+      .text(
+        "-------------------------------------------------------------------",
+        { align: "center" }
+      );
   }
 
   private addIssuerAndReceiver(doc: PDFKit.PDFDocument) {
@@ -80,7 +76,10 @@ export class PDFGenerator {
       .text(`Teléfono: ${receptor.telefono}`)
       .text(`Correo: ${receptor.email}`)
       .moveDown(0.3)
-      .text("--------------------------------------", { align: "center" });
+      .text(
+        "-----------------------------------------------------------------------------",
+        { align: "center" }
+      );
   }
 
   private addDetails(doc: PDFKit.PDFDocument) {
@@ -90,12 +89,28 @@ export class PDFGenerator {
       .moveDown(0.3)
       .fontSize(8)
       .font("Helvetica-Bold")
-      .text("Cód  Descripción")
-      .moveDown(0.2)
-      .text("Cant  P.Unit  IVA  Total")
-      .font("Helvetica")
-      .moveDown(0.2)
-      .text("--------------------------------------", { align: "center" });
+      .text("Cód", 15)
+      .moveUp(1)
+      .text("Descripción", 40)
+      .moveUp(1)
+      .text("Cant", 100)
+      .moveUp(1)
+      .text("P.Unit", 130)
+      .moveUp(1)
+      .text("IVA", 165)
+      .moveUp(1)
+      .text("Total", 190)
+      .moveUp(1)
+      .font("Helvetica");
+
+    doc
+      .moveDown(1.2)
+      .text(
+        "-----------------------------------------------------------------------------",
+        10,
+        doc.y,
+        { align: "center" }
+      );
 
     detalles.forEach((item: any) => {
       const totalLinea =
@@ -104,18 +119,22 @@ export class PDFGenerator {
       doc
         .fontSize(7)
         .text(
-          `${item.codigoComercial.codigo} ${item.descripcion.substring(0, 25)}`
-        )
-        .text(
-          `${item.cantidad}   ${item.precioUnitario.toFixed(0)}   ${
+          `${item.codigoComercial.codigo}  ${item.descripcion.substring(
+            0,
+            25
+          )}  ${item.cantidad}  ${item.precioUnitario.toFixed(0)}  ${
             item.impuesto.tarifa
-          }%   ${totalLinea.toFixed(0)}`
+          }%  ${totalLinea.toFixed(0)}`
         )
         .moveDown(0.3);
     });
 
     doc
-      .text("--------------------------------------", { align: "center" })
+      .fontSize(8)
+      .text(
+        "-----------------------------------------------------------------------------",
+        { align: "center" }
+      )
       .moveDown(0.2);
   }
 
@@ -144,7 +163,10 @@ export class PDFGenerator {
       .text(`TOTAL:     ${totalGeneral.toFixed(2)} ${moneda}`)
       .font("Helvetica")
       .moveDown(0.3)
-      .text("--------------------------------------", { align: "center" });
+      .text(
+        "-----------------------------------------------------------------------------",
+        { align: "center" }
+      );
   }
 
   private addFooter(doc: PDFKit.PDFDocument) {
