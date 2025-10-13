@@ -21,7 +21,7 @@ class CashRegister extends Model<
   declare amount: number;
   declare closing_amount: number | null;
   declare status: TStatus;
-  declare user_id: number;
+  declare user_id: number | null;
   declare user?: User;
   declare invoices?: Invoice[];
 }
@@ -62,7 +62,7 @@ CashRegister.init(
     },
     user_id: {
       type: DataTypes.INTEGER.UNSIGNED,
-      allowNull: false,
+      allowNull: true,
       references: {
         model: "users",
         key: "id",
