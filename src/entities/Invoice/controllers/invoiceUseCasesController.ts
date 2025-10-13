@@ -1,7 +1,6 @@
 import { DeleteInvoiceUseCase } from "../domain/useCases/deleteInvoiceUseCase.js";
 import { GetAllInvoiceUseCase } from "../domain/useCases/getAllInvoiceUseCase.js";
 import { GetInvoiceUseCase } from "../domain/useCases/getInvoiceUseCase.js";
-
 import { PatchInvoiceUseCase } from "../domain/useCases/patchInvoiceUseCase.js";
 import { PostInvoiceUseCase } from "../domain/useCases/postInvoiceUseCase.js";
 import { InvoiceRepository } from "../repository/invoiceRepository.js";

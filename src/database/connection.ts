@@ -12,15 +12,10 @@ export const sequelize = new Sequelize(
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false
+        rejectUnauthorized: false // ponga true si su proveedor tiene CA publico
       }
     },
     logging: console.log,
-    pool: {
-      max: 5,
-      min: 0,
-      acquire: 30000,
-      idle: 10000,
-    },
+    pool: { max:5, min:0, acquire:30000, idle:10000 },
   }
 );

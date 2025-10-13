@@ -15,6 +15,8 @@ import type { ProdutList } from "../types/TInvoice.js";
 import type { TInvoiceStatus } from "../types/TInvoiceStatus.js";
 import type { TPaymentMethod } from "../../../../domain/types/TPaymentMethod.js";
 import type CreditPayment from "../../../CreditPayment/domain/models/CreditPaymentModel.js";
+import type CashRegister from "../../../CashRegister/domain/models/CashRegisterModel.js";
+import type User from "../../../User/domain/models/UserModel.js";
 
 class Invoice extends Model<
   InferAttributes<Invoice>,
@@ -33,11 +35,15 @@ class Invoice extends Model<
   declare invoice_number: string;
   declare digital_signature: string | null;
   declare biometric_hash: string | null;
+  declare cash_register_id: number;
+  declare user_id: number;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare customer?: Customer;
   declare products?: ProdutList[];
   declare payments?: CreditPayment[];
+  declare cashRegister?: CashRegister;
+  declare user?: User;
   declare addProduct: BelongsToManyAddAssociationMixin<Product, number>;
   declare addProducts: BelongsToManyAddAssociationsMixin<Product, number>;
   declare getProducts: BelongsToManyGetAssociationsMixin<Product>;
@@ -90,6 +96,22 @@ Invoice.init(
       type: DataTypes.STRING(512),
       allowNull: false,
       unique: true,
+    },
+    cash_register_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      references: {
+        model: "cash_registers",
+        key: "id",
+      },
+    },
+    user_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      references: {
+        model: "users",
+        key: "id",
+      },
     },
     digital_signature: {
       type: DataTypes.STRING(512),

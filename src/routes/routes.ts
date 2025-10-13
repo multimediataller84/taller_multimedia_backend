@@ -13,6 +13,8 @@ import creditPaymentRouter from "../entities/CreditPayment/routes/creditPaymentR
 import taxRouter from "../entities/Tax/routes/taxRoutes.js";
 import { verifyRole } from "../middlewares/role.js";
 import processDataRouter from "../entities/ProcessData/routes/processDataRouter.js";
+import cashRegisterRouter from "../entities/CashRegister/routes/cashRegisterRoutes.js";
+import aiRecommendations from "./ai.recommendations.js";
 
 const router = express.Router();
 
@@ -32,5 +34,7 @@ router.use("/role", rolesRouter);
 router.use("/credit", authMiddleware, verifyRole(["admin", "employee"]), creditRouter);
 router.use("/credit/payment", authMiddleware, verifyRole(["admin", "employee"]), creditPaymentRouter);
 router.use("/admin/data", processDataRouter);
+router.use("/cash/register", cashRegisterRouter);
+router.use("/ai/recommendations", authMiddleware, verifyRole(["admin", "employee"]), aiRecommendations);
 
 export default router;

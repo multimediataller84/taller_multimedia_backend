@@ -11,6 +11,7 @@ import InvoiceProducts from "../entities/Invoice/domain/models/InvoiceProducts.j
 import Province from "../domain/models/ProvinceModel.js";
 import Canton from "../domain/models/CantonModel.js";
 import District from "../domain/models/DistrictModel.js";
+import CashRegister from "../entities/CashRegister/domain/models/CashRegisterModel.js";
 
 export function setupAssociations() {
   // Role <->  User arreglada terminada
@@ -62,4 +63,21 @@ export function setupAssociations() {
 
   Canton.hasMany(District, { foreignKey: "canton_id", as: "districts" });
   District.belongsTo(Canton, { foreignKey: "canton_id", as: "canton" });
+
+  // En Cash register -> user -> invoice
+  CashRegister.belongsTo(User, { foreignKey: "user_id", as: "user" });
+  CashRegister.hasMany(Invoice, {
+    foreignKey: "cash_register_id",
+    as: "invoices",
+  });
+
+  // invoice Cash
+  Invoice.belongsTo(CashRegister, {
+    foreignKey: "cash_register_id",
+    as: "cashRegister",
+  });
+
+  // seguimiento de las facturas por empleado
+  Invoice.belongsTo(User, { foreignKey: "user_id", as: "user" });
+  User.hasMany(Invoice, { foreignKey: "user_id", as: "invoices" });
 }

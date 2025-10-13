@@ -8,6 +8,8 @@ import jwt, { type Secret, type SignOptions } from "jsonwebtoken";
 import { config } from "../../../utilities/config.js";
 import type { TPayload } from "../domain/types/TPayload.js";
 import Role from "../../Role/domain/models/RoleModel.js";
+import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js";
+import Invoice from "../../Invoice/domain/models/InvoiceModel.js";
 
 export class UserService implements IUserServices {
   private static instance: UserService;
@@ -22,7 +24,26 @@ export class UserService implements IUserServices {
   get = async (id: number): Promise<TUserEndpoint> => {
     try {
       const user = await User.findByPk(id, {
-        include: [{ model: Role, as: "role", attributes: ["id", "name"] }],
+        include: [
+          { model: Role, as: "role", attributes: ["id", "name"] },
+          {
+            model: Invoice,
+            as: "invoices",
+            attributes: [
+              "id",
+              "customer_id",
+              "issue_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "cash_register_id",
+            ],
+          },
+        ],
       });
       if (!user) {
         throw new Error("user not found");
@@ -38,7 +59,26 @@ export class UserService implements IUserServices {
   getAll = async (): Promise<TUserEndpoint[]> => {
     try {
       const users = await User.findAll({
-        include: [{ model: Role, as: "role", attributes: ["id", "name"] }],
+        include: [
+          { model: Role, as: "role", attributes: ["id", "name"] },
+          {
+            model: Invoice,
+            as: "invoices",
+            attributes: [
+              "id",
+              "customer_id",
+              "issue_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "cash_register_id",
+            ],
+          },
+        ],
       });
       if (users.length === 0) {
         throw new Error("users not found");
@@ -98,6 +138,15 @@ export class UserService implements IUserServices {
       if (!user) {
         throw new Error("User not found");
       }
+
+      const cashRegister = await CashRegister.findOne({
+        where: { user_id: id },
+      });
+      if (cashRegister)
+        throw new Error(
+          "Cannot delete an employee associated with a cash register"
+        );
+
       await user.destroy();
       return user;
     } catch (error) {

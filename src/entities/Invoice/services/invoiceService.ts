@@ -9,6 +9,13 @@ import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
 import { sequelize } from "../../../database/connection.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
 import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
+import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js";
+import { PDFGenerator } from "../../ElectronicInvoice/services/PDFGenerator.js";
+import { jsonTest } from "../../ElectronicInvoice/utils/testInvoice.js";
+import path from "path";
+import type { TBuffer } from "../domain/types/TBuffer.js";
+import User from "../../User/domain/models/UserModel.js";
+import Role from "../../Role/domain/models/RoleModel.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -35,6 +42,18 @@ export class InvoiceService implements IInvoiceServices {
               "id_number",
               "phone",
               "email",
+            ],
+          },
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "name", "username"],
+            include: [
+              {
+                model: Role,
+                as: "role",
+                attributes: ["id", "name"],
+              },
             ],
           },
           {
@@ -85,6 +104,18 @@ export class InvoiceService implements IInvoiceServices {
             ],
           },
           {
+            model: User,
+            as: "user",
+            attributes: ["id", "name", "username"],
+            include: [
+              {
+                model: Role,
+                as: "role",
+                attributes: ["id", "name"],
+              },
+            ],
+          },
+          {
             model: Product,
             as: "products",
             attributes: ["id", "product_name", "sku"],
@@ -114,10 +145,22 @@ export class InvoiceService implements IInvoiceServices {
     }
   };
 
-  post = async (data: TInvoice): Promise<TInvoiceEndpoint> => {
+  post = async (data: TInvoice): Promise<TBuffer> => {
     const transaction = await sequelize.transaction();
 
     try {
+      const customer = await Customer.findByPk(data.customer_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!customer) throw new Error("Customer dont exist");
+
+      const employee = await User.findByPk(data.user_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
+      if (!employee) throw new Error("employee dont exist");
+
       let credit: Credit | null = null;
 
       if (data.payment_method === "Credit") {
@@ -197,6 +240,29 @@ export class InvoiceService implements IInvoiceServices {
         );
       }
 
+      if (data.payment_method === "Cash") {
+        const registered = await CashRegister.findByPk(data.cash_register_id, {
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+        });
+
+        if (!registered) {
+          throw new Error("Cash register not found.");
+        }
+
+        if (registered.status !== "open") {
+          throw new Error("The cash register is closed.");
+        }
+
+        if (registered.amount < total) {
+          throw new Error("Insufficient funds in cash register.");
+        }
+
+        const newAmount = parseFloat((registered.amount - total).toFixed(2));
+
+        await registered.update({ amount: newAmount }, { transaction });
+      }
+
       const invoice = await Invoice.create(
         {
           customer_id: data.customer_id,
@@ -207,10 +273,12 @@ export class InvoiceService implements IInvoiceServices {
           total,
           amount_paid,
           payment_method: data.payment_method,
+          user_id: data.user_id,
           status: data.status,
           invoice_number: uuid,
           biometric_hash: data.biometric_hash ?? null,
           digital_signature: data.digital_signature ?? null,
+          cash_register_id: data.cash_register_id,
         },
         { transaction }
       );
@@ -227,12 +295,15 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       await transaction.commit();
+      const invoicePDF = new PDFGenerator(jsonTest);
+      const buffer: Buffer = await invoicePDF.generate();
 
-      const updateInvoice = await this.get(uuid);
-
-      return updateInvoice ?? invoice;
+      return { name: uuid, file: buffer };
     } catch (error) {
-      await transaction.rollback();
+      const anyTransaction = transaction as any;
+      if (!anyTransaction.finished) {
+        await transaction.rollback();
+      }
       throw error;
     }
   };

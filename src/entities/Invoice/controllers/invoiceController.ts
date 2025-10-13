@@ -1,7 +1,7 @@
 import type { IInvoiceController } from "../domain/interfaces/IInvoiceController.js";
 import { InvoiceRepository } from "../repository/invoiceRepository.js";
 import type { Request, Response } from "express";
-import { InvoiceUseCasesController} from "./invoiceUseCasesController.js";
+import { InvoiceUseCasesController } from "./invoiceUseCasesController.js";
 
 export class InvoiceController implements IInvoiceController {
   private static instance: InvoiceController;
@@ -37,10 +37,16 @@ export class InvoiceController implements IInvoiceController {
 
   post = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.useCases.post.execute(req.body);
-      res.status(200).json(result);
+      const { name, file } = await this.useCases.post.execute(req.body);
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="invoice-${name}.pdf"`
+      );
+      const base64File = file.toString("base64");
+      res.status(200).send({name, base64File});
     } catch (error: any) {
-      res.status(403).json({ error: error.message });
+      res.status(404).json({ error: error.message });
     }
   };
 
