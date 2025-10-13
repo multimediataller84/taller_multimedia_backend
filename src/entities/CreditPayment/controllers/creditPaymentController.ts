@@ -1,7 +1,7 @@
 import type { ICreditPaymentController } from "../domain/interfaces/ICreditPaymentController.js";
 import { CreditPaymentRepository } from "../repository/creditPaymentRepository.js";
 import type { Request, Response } from "express";
-import { CreditPaymentUseCasesController} from "./creditPaymentUseCasesController.js";
+import { CreditPaymentUseCasesController } from "./creditPaymentUseCasesController.js";
 
 export class CreditPaymentController implements ICreditPaymentController {
   private static instance: CreditPaymentController;
@@ -28,7 +28,12 @@ export class CreditPaymentController implements ICreditPaymentController {
 
   getAll = async (req: Request, res: Response): Promise<void> => {
     try {
-      const result = await this.useCases.getAll.execute();
+      const creditId = req.query.credit_id ? Number(req.query.credit_id) : undefined;
+      const result = await this.useCases.getAll.execute(creditId);
+      if (!result || result.length === 0) {
+        res.status(200).json([]); // consistente con el front
+        return;
+      }
       res.status(200).json(result);
     } catch (error: any) {
       res.status(404).json({ error: error.message });

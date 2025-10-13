@@ -15,6 +15,7 @@ import type { TBuffer } from "../domain/types/TBuffer.js";
 import User from "../../User/domain/models/UserModel.js";
 import Role from "../../Role/domain/models/RoleModel.js";
 import { ConvertJSON } from "../../ElectronicInvoice/services/convertJSON.js";
+
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -358,50 +359,52 @@ export class InvoiceService implements IInvoiceServices {
     }
   };
 
+  // ⬇️⬇️ AQUÍ EL CAMBIO: eliminar factura con “reembolso” del pendiente al balance si fue a crédito ⬇️⬇️
   delete = async (id: number): Promise<TInvoiceEndpoint> => {
+    const t = await sequelize.transaction();
     try {
+      // Trae la factura con lock para evitar carreras
       const invoice = await Invoice.findByPk(id, {
-        include: [
-          {
-            model: Customer,
-            as: "customer",
-            attributes: [
-              "id",
-              "name",
-              "last_name",
-              "address",
-              "id_number",
-              "phone",
-              "email",
-            ],
-          },
-          {
-            model: Product,
-            as: "products",
-            attributes: ["id", "product_name", "sku"],
-            through: { attributes: ["quantity", "unit_price", "subtotal"] },
-          },
-          {
-            model: CreditPayment,
-            as: "payments",
-            attributes: [
-              "id",
-              "credit_id",
-              "payment_date",
-              "amount",
-              "payment_method",
-              "note",
-              "createdAt",
-            ],
-          },
-        ],
+        transaction: t,
+        lock: t.LOCK.UPDATE,
       });
       if (!invoice) {
         throw new Error("invoice not found");
       }
-      await invoice.destroy();
+
+      // Si la factura fue a crédito, devolver al balance el pendiente (total - amount_paid)
+      if (String(invoice.payment_method).toLowerCase() === "credit") {
+        const total = Number(invoice.total ?? 0);
+        const paid = Number(invoice.amount_paid ?? 0);
+        const pending = Math.max(total - paid, 0);
+
+        if (pending > 0) {
+          const credit = await Credit.findOne({
+            where: { customer_id: invoice.customer_id },
+            transaction: t,
+            lock: t.LOCK.UPDATE,
+          });
+
+          // Si hay línea de crédito, suma el pendiente al balance (disponible)
+          if (credit) {
+            const newBalance = Number(credit.balance) + pending;
+            credit.set({ balance: newBalance });
+            await credit.save({ transaction: t });
+          }
+        }
+      }
+
+      // IMPORTANTE: con onDelete: "RESTRICT" en CreditPayment.invoice_id,
+      // si existen abonos, Sequelize/DB impedirá borrar la factura.
+      // En ese caso devolverá un error aquí.
+      await invoice.destroy({ transaction: t });
+
+      await t.commit();
+
+      // Devuelve el snapshot eliminado (como antes hacía el servicio)
       return invoice;
     } catch (error) {
+      await t.rollback();
       throw error;
     }
   };

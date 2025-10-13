@@ -18,6 +18,13 @@ const creditPaymentRouter = express.Router();
  *     summary: Get all credit payments
  *     tags:
  *       - CreditPayment
+ *     parameters:
+ *       - in: query
+ *         name: credit_id
+ *         schema:
+ *           type: integer
+ *         required: false
+ *         description: Filters payments by credit_id
  *     responses:
  *       200:
  *         description: List of credit payments
@@ -136,6 +143,18 @@ creditPaymentRouter.patch("/:id", creditPaymentController.patch);
  *         description: Error deleting credit payment
  */
 creditPaymentRouter.delete("/:id", creditPaymentController.delete);
+
+
+// GET /credit/payment/all  (con el mismo controlador que ya lee credit_id)
+creditPaymentRouter.get("/../credit/payment/all", creditPaymentController.getAll);
+// GET /credit/payment/:id
+creditPaymentRouter.get("/../credit/payment/:id", creditPaymentController.get);
+// POST /credit/payment
+creditPaymentRouter.post("/../credit/payment", creditPaymentController.post);
+// PATCH /credit/payment/:id
+creditPaymentRouter.patch("/../credit/payment/:id", creditPaymentController.patch);
+// DELETE /credit/payment/:id
+creditPaymentRouter.delete("/../credit/payment/:id", creditPaymentController.delete);
 
 export default creditPaymentRouter;
 
