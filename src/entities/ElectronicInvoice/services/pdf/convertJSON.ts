@@ -1,17 +1,18 @@
-import Customer from "../../CustomerAccount/domain/models/CustomerModel.js";
-import type { TInvoiceEndpoint } from "../../Invoice/domain/types/TInvoiceEndpoint.js";
-import Tax from "../../Tax/domain/models/TaxModel.js";
+import Customer from "../../../CustomerAccount/domain/models/CustomerModel.js";
+import type { TInvoiceEndpoint } from "../../../Invoice/domain/types/TInvoiceEndpoint.js";
+import Tax from "../../../Tax/domain/models/TaxModel.js";
 import type {
   TEmitter,
   TLineDetails,
   TReceiver,
-} from "../domain/types/TElectroniceInvoice.js";
-import type { TProductDetails } from "../domain/types/TProductDetails.js";
-import { generateConsecutive } from "../utils/generateConsecutive.js";
-import { paymentTypeMap } from "../utils/codePaymentMethodConverter.js";
-import { paymentMethodLangMap } from "../utils/paymentMethodLangConverter.js";
+} from "../../domain/types/TElectroniceInvoice.js";
+import type { TProductDetails } from "../../domain/types/TProductDetails.js";
+import { generateConsecutive } from "../../utils/generateConsecutive.js";
+import { paymentTypeMap } from "../../utils/codePaymentMethodConverter.js";
+import { paymentMethodLangMap } from "../../utils/paymentMethodLangConverter.js";
 import moment from "moment-timezone";
-import type { TElectronicInvoiceJSON } from "../domain/types/TElectronicInvoiceJSON.js";
+import type { TElectronicInvoiceJSON } from "../../domain/types/TElectronicInvoiceJSON.js";
+import type { TTaxEndpoint } from "../../../Tax/domain/types/TTaxEndpoint.js";
 
 moment.locale("es");
 
@@ -93,28 +94,30 @@ export class ConvertJSON {
   private async getDetails(): Promise<TLineDetails[]> {
     return await Promise.all(
       this.products.map(async (item: TProductDetails, index: number) => {
-        const tarifa = await this.getTax(item.product.tax_id);
+        const tax = await this.getTax(item.product.tax_id);
         return {
           codigoComercial: {
             tipo: "01",
             codigo: item.product.sku || `PROD${index + 1}`,
           },
           descripcion: item.product.product_name || "Producto sin descripción",
-          cantidad: item.quantity || 1,
+          cantidad: item.quantity,
           unidadMedida: "NA",
           precioUnitario: parseFloat(String(item.unit_price)),
           impuesto: {
             codigo: "01",
             codigoTarifa: "08",
-            tarifa,
+            tarifa: tax?.percentage ?? 0,
+            codigoCABYS: tax?.name ?? "NA"
           },
         };
       })
     );
   }
 
-  private async getTax(id: number): Promise<number> {
+  private async getTax(id: number): Promise<TTaxEndpoint | null> {
     const tax = await Tax.findByPk(id);
-    return tax?.percentage ?? 0;
+    tax?.name
+    return tax;
   }
 }

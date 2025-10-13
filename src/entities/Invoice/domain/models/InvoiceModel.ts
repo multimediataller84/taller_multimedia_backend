@@ -7,6 +7,7 @@ import {
   type BelongsToManyAddAssociationMixin,
   type BelongsToManyAddAssociationsMixin,
   type BelongsToManyGetAssociationsMixin,
+  type HasManySetAssociationsMixin,
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
 import type Customer from "../../../CustomerAccount/domain/models/CustomerModel.js";
@@ -46,6 +47,7 @@ class Invoice extends Model<
   declare user?: User;
   declare addProduct: BelongsToManyAddAssociationMixin<Product, number>;
   declare addProducts: BelongsToManyAddAssociationsMixin<Product, number>;
+  declare setProducts: HasManySetAssociationsMixin<Product, number>;
   declare getProducts: BelongsToManyGetAssociationsMixin<Product>;
 }
 

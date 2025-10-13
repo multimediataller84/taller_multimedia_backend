@@ -1,7 +1,10 @@
 import PDFDocument from "pdfkit";
-export class PDFGenerator {
-  constructor(readonly invoice: any) {
-    console.log(this.invoice);
+import type { TElectronicInvoiceJSON } from "../../domain/types/TElectronicInvoiceJSON.js";
+import { GeneratePDF } from "../../domain/abstract/abstractClassPDF.js";
+
+export class PDFGenerator extends GeneratePDF {
+  constructor(readonly invoice: TElectronicInvoiceJSON) {
+    super(invoice);
   }
 
   async generate(): Promise<Buffer> {
@@ -34,7 +37,7 @@ export class PDFGenerator {
     return endPromise;
   }
 
-  private addHeader(doc: PDFKit.PDFDocument) {
+  protected addHeader(doc: PDFKit.PDFDocument) {
     const { id, consecutivo, codigoActividad, emisor } = this.invoice;
 
     doc
@@ -73,7 +76,7 @@ export class PDFGenerator {
       );
   }
 
-  private addIssuerAndReceiver(doc: PDFKit.PDFDocument) {
+  protected addIssuerAndReceiver(doc: PDFKit.PDFDocument) {
     const { receptor } = this.invoice;
 
     doc
@@ -91,7 +94,7 @@ export class PDFGenerator {
       );
   }
 
-  private addDetails(doc: PDFKit.PDFDocument) {
+  protected addDetails(doc: PDFKit.PDFDocument) {
     const { detalles } = this.invoice;
 
     doc
@@ -169,7 +172,7 @@ export class PDFGenerator {
       .moveDown(0.2);
   }
 
-  private addOrderCondition(doc: PDFKit.PDFDocument) {
+  protected addOrderCondition(doc: PDFKit.PDFDocument) {
     const { condicionVenta, medioPago } = this.invoice;
     doc
       .text(`Condicion: ${condicionVenta}`)
@@ -182,7 +185,7 @@ export class PDFGenerator {
       .moveDown(0.2);
   }
 
-  private addTotals(doc: PDFKit.PDFDocument) {
+  protected addTotals(doc: PDFKit.PDFDocument) {
     const { detalles, moneda } = this.invoice;
 
     const subtotal = detalles.reduce(
@@ -215,7 +218,7 @@ export class PDFGenerator {
       );
   }
 
-  private addFooter(doc: PDFKit.PDFDocument) {
+  protected addFooter(doc: PDFKit.PDFDocument) {
     doc
       .fontSize(7)
       .fillColor("gray")

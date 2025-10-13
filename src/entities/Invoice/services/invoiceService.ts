@@ -10,12 +10,12 @@ import { sequelize } from "../../../database/connection.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
 import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
 import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js";
-import { PDFGenerator } from "../../ElectronicInvoice/services/PDFGenerator.js";
 import type { TBuffer } from "../domain/types/TBuffer.js";
 import User from "../../User/domain/models/UserModel.js";
 import Role from "../../Role/domain/models/RoleModel.js";
-import { ConvertJSON } from "../../ElectronicInvoice/services/convertJSON.js";
-
+import { ConvertJSON } from "../../ElectronicInvoice/services/pdf/convertJSON.js";
+import { PDFFactory } from "../../ElectronicInvoice/services/pdf/PDFFactory.js";
+import type { PDFType } from "../../ElectronicInvoice/domain/types/PDFType.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -295,8 +295,14 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       await transaction.commit();
+
+      const pdfType: PDFType = "A4";
+
       const convertPdf = new ConvertJSON(invoice.dataValues, productsWithTax);
-      const invoicePDF = new PDFGenerator(await convertPdf.transformJSON());
+      const invoicePDF = PDFFactory.createPDF(
+        pdfType,
+        await convertPdf.transformJSON()
+      );
       const buffer: Buffer = await invoicePDF.generate();
 
       return { name: uuid, file: buffer };
@@ -359,21 +365,53 @@ export class InvoiceService implements IInvoiceServices {
     }
   };
 
-  // ⬇️⬇️ AQUÍ EL CAMBIO: eliminar factura con “reembolso” del pendiente al balance si fue a crédito ⬇️⬇️
   delete = async (id: number): Promise<TInvoiceEndpoint> => {
-    const t = await sequelize.transaction();
+    const transaction = await sequelize.transaction();
     try {
-      // Trae la factura con lock para evitar carreras
       const invoice = await Invoice.findByPk(id, {
-        transaction: t,
-        lock: t.LOCK.UPDATE,
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "phone",
+              "email",
+            ],
+          },
+          {
+            model: Product,
+            as: "products",
+            attributes: ["id", "product_name", "sku"],
+            through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
+          },
+        ],
       });
+
       if (!invoice) {
-        throw new Error("invoice not found");
+        throw new Error("Invoice not found");
       }
 
-      // Si la factura fue a crédito, devolver al balance el pendiente (total - amount_paid)
-      if (String(invoice.payment_method).toLowerCase() === "credit") {
+      if (invoice.payment_method === "Credit") {
         const total = Number(invoice.total ?? 0);
         const paid = Number(invoice.amount_paid ?? 0);
         const pending = Math.max(total - paid, 0);
@@ -381,31 +419,28 @@ export class InvoiceService implements IInvoiceServices {
         if (pending > 0) {
           const credit = await Credit.findOne({
             where: { customer_id: invoice.customer_id },
-            transaction: t,
-            lock: t.LOCK.UPDATE,
+            transaction,
+            lock: transaction.LOCK.UPDATE,
           });
 
-          // Si hay línea de crédito, suma el pendiente al balance (disponible)
           if (credit) {
-            const newBalance = Number(credit.balance) + pending;
-            credit.set({ balance: newBalance });
-            await credit.save({ transaction: t });
+            const newBalance = Number(credit.balance ?? 0) + pending;
+            await credit.update({ balance: newBalance }, { transaction });
           }
         }
       }
 
-      // IMPORTANTE: con onDelete: "RESTRICT" en CreditPayment.invoice_id,
-      // si existen abonos, Sequelize/DB impedirá borrar la factura.
-      // En ese caso devolverá un error aquí.
-      await invoice.destroy({ transaction: t });
+      if (invoice.products && invoice.products.length > 0) {
+        await invoice.setProducts([], { transaction });
+      }
 
-      await t.commit();
+      await invoice.destroy({ transaction });
+      await transaction.commit();
 
-      // Devuelve el snapshot eliminado (como antes hacía el servicio)
       return invoice;
     } catch (error) {
-      await t.rollback();
-      throw error;
+      await transaction.rollback();
+      throw new Error("Error at: " + error);
     }
   };
 }

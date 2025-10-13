@@ -1,5 +1,5 @@
-import { generateConsecutive } from "../utils/generateConsecutive.js";
-import type { TElectroniceInvoice } from "../domain/types/TElectroniceInvoice.js";
+import { generateConsecutive } from "../../utils/generateConsecutive.js";
+import type { TElectroniceInvoice } from "../../domain/types/TElectroniceInvoice.js";
 
 export class ElectroniceInvoiceXML {
   private readonly COUNTRYCODE: string = "506";
