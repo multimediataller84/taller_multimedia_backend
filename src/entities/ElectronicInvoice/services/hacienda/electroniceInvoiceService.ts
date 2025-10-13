@@ -1,5 +1,5 @@
-import { config } from "../../../utilities/config.js";
-import { invoiceValidator } from "../utils/invoiceValidator.js";
+import { config } from "../../../../utilities/config.js";
+import { invoiceValidator } from "../../utils/invoiceValidator.js";
 import { DigitalSign } from "./digitalSign.js";
 import { ElectroniceInvoiceXML } from "./invoiceXML.js";
 import { SendHacienda } from "./sendHacienda.js";

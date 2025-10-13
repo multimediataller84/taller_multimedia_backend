@@ -1,0 +1,1 @@
+export type PDFType = "A4" | "TICKET";
