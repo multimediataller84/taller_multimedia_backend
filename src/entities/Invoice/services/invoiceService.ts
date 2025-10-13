@@ -11,11 +11,10 @@ import Credit from "../../Credit/domain/models/CreditModel.js";
 import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
 import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js";
 import { PDFGenerator } from "../../ElectronicInvoice/services/PDFGenerator.js";
-import { jsonTest } from "../../ElectronicInvoice/utils/testInvoice.js";
-import path from "path";
 import type { TBuffer } from "../domain/types/TBuffer.js";
 import User from "../../User/domain/models/UserModel.js";
 import Role from "../../Role/domain/models/RoleModel.js";
+import { ConvertJSON } from "../../ElectronicInvoice/services/convertJSON.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -295,7 +294,8 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       await transaction.commit();
-      const invoicePDF = new PDFGenerator(jsonTest);
+      const convertPdf = new ConvertJSON(invoice.dataValues, productsWithTax);
+      const invoicePDF = new PDFGenerator(await convertPdf.transformJSON());
       const buffer: Buffer = await invoicePDF.generate();
 
       return { name: uuid, file: buffer };

@@ -1,9 +1,11 @@
 import PDFDocument from "pdfkit";
 export class PDFGenerator {
-  constructor(readonly invoice: any) {}
+  constructor(readonly invoice: any) {
+    console.log(this.invoice);
+  }
 
   async generate(): Promise<Buffer> {
-    const baseHeight = 300;
+    const baseHeight = 350;
     const lineHeight = 22;
     const detalles = this.invoice.detalles || [];
     const dynamicHeight = baseHeight + detalles.length * lineHeight;
@@ -23,6 +25,7 @@ export class PDFGenerator {
     this.addHeader(doc);
     this.addIssuerAndReceiver(doc);
     this.addDetails(doc);
+    this.addOrderCondition(doc);
     this.addTotals(doc);
     this.addFooter(doc);
 
@@ -32,33 +35,40 @@ export class PDFGenerator {
   }
 
   private addHeader(doc: PDFKit.PDFDocument) {
-    const { consecutivo, codigoActividad, emisor } = this.invoice;
-
-    // doc.image("logo.png", 70, 10, { width: 80 });
+    const { id, consecutivo, codigoActividad, emisor } = this.invoice;
 
     doc
       .fontSize(11)
       .font("Helvetica-Bold")
-      .text(emisor.nombreComercial || emisor.nombre, { align: "center" })
+      .text(emisor.nombre, { align: "center" })
       .moveDown(0.3)
       .fontSize(8)
       .font("Helvetica")
-      .text(`Tramo La Maravilla S.A.`, { align: "center" })
-      .text(`Cédula Jurídica: ${emisor.identificacion ?? "NA"}`, { align: "center" })
+      .text(emisor.nombreComercial, { align: "center" })
+      .text(`Cédula Jurídica: ${emisor.identificacion ?? "NA"}`, {
+        align: "center",
+      })
       .text(`Actividad Económica: ${codigoActividad}`, { align: "center" })
       .text(emisor.direccion, { align: "center" })
       .text(`Tel: +506 ${emisor.telefono}`, { align: "center" })
       .text(`Email: ${emisor.email}`, { align: "center" })
-      .moveDown(0.5);
+      .moveDown(0.5)
+      .text(
+        "-----------------------------------------------------------------------------",
+        { align: "center" }
+      );
 
     doc
-      .fontSize(9)
-      .font("Helvetica-Bold")
-      .text(`Factura N°: ${consecutivo}`, { align: "center" })
+      .moveDown(0.3)
+      .fontSize(8)
+      .font("Helvetica")
+      .text(`Factura N°: ${id}`, { align: "left" })
+      .text(`Consecutivo°: ${consecutivo}`, { align: "left" })
+      .text(`Fecha: ${this.invoice.fechaEmision}`)
       .moveDown(0.3)
       .font("Helvetica")
       .text(
-        "-------------------------------------------------------------------",
+        "-----------------------------------------------------------------------------",
         { align: "center" }
       );
   }
@@ -68,10 +78,9 @@ export class PDFGenerator {
 
     doc
       .fontSize(8)
-      .font("Helvetica-Bold")
-      .text("Cliente:")
       .font("Helvetica")
-      .text(receptor.nombre)
+      .text(`Cliente: ${receptor.nombre}`)
+      .text(`Tipo identificacion: ${receptor.tipoIdentificacion}`)
       .text(`Cédula: ${receptor.identificacion}`)
       .text(`Teléfono: ${receptor.telefono}`)
       .text(`Correo: ${receptor.email}`)
@@ -150,12 +159,24 @@ export class PDFGenerator {
     });
 
     doc
-      .moveDown(0.3)
       .fontSize(8)
       .text(
         "-----------------------------------------------------------------------------",
         10,
-        doc.y,
+        y,
+        { align: "center" }
+      )
+      .moveDown(0.2);
+  }
+
+  private addOrderCondition(doc: PDFKit.PDFDocument) {
+    const { condicionVenta, medioPago } = this.invoice;
+    doc
+      .text(`Condicion: ${condicionVenta}`)
+      .text(`Medio de pago: ${medioPago}`)
+      .moveDown(0.3)
+      .text(
+        "-----------------------------------------------------------------------------",
         { align: "center" }
       )
       .moveDown(0.2);
@@ -181,7 +202,9 @@ export class PDFGenerator {
     doc
       .fontSize(8)
       .text(`Subtotal:  ${subtotal.toFixed(2)} ${moneda}`)
+      .moveDown(0.2)
       .text(`IVA:       ${totalImpuesto.toFixed(2)} ${moneda}`)
+      .moveDown(0.2)
       .font("Helvetica-Bold")
       .text(`TOTAL:     ${totalGeneral.toFixed(2)} ${moneda}`)
       .font("Helvetica")

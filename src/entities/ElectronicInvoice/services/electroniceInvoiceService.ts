@@ -4,8 +4,7 @@ import { DigitalSign } from "./digitalSign.js";
 import { ElectroniceInvoiceXML } from "./invoiceXML.js";
 import { SendHacienda } from "./sendHacienda.js";
 import fs from "fs/promises";
-import { jsonTest } from "../utils/testInvoice.js";
-
+/*
 export async function facturar() {
   try {
 
@@ -50,3 +49,4 @@ export async function facturar() {
     };
   }
 }
+*/
