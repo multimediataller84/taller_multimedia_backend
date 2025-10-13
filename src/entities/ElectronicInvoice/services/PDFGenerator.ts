@@ -25,7 +25,7 @@ export class PDFGenerator {
     this.addHeader(doc);
     this.addIssuerAndReceiver(doc);
     this.addDetails(doc);
-    this.addOrderCondition(doc)
+    this.addOrderCondition(doc);
     this.addTotals(doc);
     this.addFooter(doc);
 
