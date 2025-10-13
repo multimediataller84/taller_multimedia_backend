@@ -1,4 +1,5 @@
 import PDFDocument from "pdfkit";
+
 export class PDFGenerator {
   constructor(readonly invoice: any) {
     console.log(this.invoice);
