@@ -5,5 +5,5 @@ export type TCashRegister = {
   opening_amount: number;
   closing_amount: number | null;
   status: TStatus;
-  user_id: number;
+  user_id: number | null;
 };

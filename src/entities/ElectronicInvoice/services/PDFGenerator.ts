@@ -44,7 +44,7 @@ export class PDFGenerator {
       .fontSize(8)
       .font("Helvetica")
       .text(`Tramo La Maravilla S.A.`, { align: "center" })
-      .text(`Cédula Jurídica: ${emisor.identificacion}`, { align: "center" })
+      .text(`Cédula Jurídica: ${emisor.identificacion ?? "NA"}`, { align: "center" })
       .text(`Actividad Económica: ${codigoActividad}`, { align: "center" })
       .text(emisor.direccion, { align: "center" })
       .text(`Tel: +506 ${emisor.telefono}`, { align: "center" })

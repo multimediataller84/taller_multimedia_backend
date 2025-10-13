@@ -74,6 +74,8 @@ export class CashRegisterService implements ICashRegisterService {
   post = async (data: TCashRegister): Promise<TCashRegister> => {
     try {
       const { user_id } = data;
+      if(!user_id) throw new Error("user_id not found");
+       
       const employee = await User.findByPk(user_id);
       if (!employee) throw new Error("employee dont exists");
 
@@ -160,6 +162,7 @@ export class CashRegisterService implements ICashRegisterService {
       closing_amount: data.closing_amount,
       closed_at: new Date(),
       amount: data.closing_amount,
+      user_id: null,
       status: "closed" as const,
     });
   };
