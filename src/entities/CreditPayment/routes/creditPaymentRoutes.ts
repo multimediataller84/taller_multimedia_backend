@@ -39,6 +39,8 @@ const creditPaymentRouter = express.Router();
  */
 creditPaymentRouter.get("/all", creditPaymentController.getAll);
 
+creditPaymentRouter.get("/:id/all", creditPaymentController.getAllByUser);
+
 /**
  * @openapi
  * /credit-payment/{id}:
@@ -144,17 +146,25 @@ creditPaymentRouter.patch("/:id", creditPaymentController.patch);
  */
 creditPaymentRouter.delete("/:id", creditPaymentController.delete);
 
-
 // GET /credit/payment/all  (con el mismo controlador que ya lee credit_id)
-creditPaymentRouter.get("/../credit/payment/all", creditPaymentController.getAll);
+creditPaymentRouter.get(
+  "/../credit/payment/all",
+  creditPaymentController.getAll
+);
 // GET /credit/payment/:id
 creditPaymentRouter.get("/../credit/payment/:id", creditPaymentController.get);
 // POST /credit/payment
 creditPaymentRouter.post("/../credit/payment", creditPaymentController.post);
 // PATCH /credit/payment/:id
-creditPaymentRouter.patch("/../credit/payment/:id", creditPaymentController.patch);
+creditPaymentRouter.patch(
+  "/../credit/payment/:id",
+  creditPaymentController.patch
+);
 // DELETE /credit/payment/:id
-creditPaymentRouter.delete("/../credit/payment/:id", creditPaymentController.delete);
+creditPaymentRouter.delete(
+  "/../credit/payment/:id",
+  creditPaymentController.delete
+);
 
 export default creditPaymentRouter;
 

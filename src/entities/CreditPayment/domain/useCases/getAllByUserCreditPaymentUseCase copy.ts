@@ -1,9 +1,9 @@
 import { CreditPaymentRepository } from "../../repository/creditPaymentRepository.js";
 
-export class GetAllCreditPaymentUseCase {
+export class GetAllByUserCreditPaymentUseCase {
   constructor(private readonly repository: CreditPaymentRepository) {}
 
-  execute = async () => {
-    return this.repository.getAll();
+  execute = async (id: number) => {
+    return this.repository.getAllByUser(id);
   };
 }
