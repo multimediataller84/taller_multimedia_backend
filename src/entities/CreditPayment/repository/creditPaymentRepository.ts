@@ -15,31 +15,74 @@ export class CreditPaymentRepository implements ICreditPaymentRepository {
   }
 
   get = async (id: number): Promise<TCreditPaymentEndpoint> => {
-    const payment = await this.creditPaymentService.get(id);
-    if (!payment) throw new Error("source not found");
-    return payment;
+    try {
+      const invoice = await this.creditPaymentService.get(id);
+      if (!invoice) {
+        throw new Error("source not found");
+      }
+      return invoice;
+    } catch (error) {
+      throw error;
+    }
   };
 
-  getAll = async (credit_id?: number): Promise<TCreditPaymentEndpoint[]> => {
-    const payments = await this.creditPaymentService.getAll(credit_id);
-    return payments ?? [];
+  getAll = async (): Promise<TCreditPaymentEndpoint[]> => {
+    try {
+      const invoice = await this.creditPaymentService.getAll();
+      if (invoice.length === 0) {
+        throw new Error("sources not found");
+      }
+      return invoice;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  getAllByUser = async (id: number): Promise<TCreditPaymentEndpoint[]> => {
+    try {
+      const invoice = await this.creditPaymentService.getAllByUser(id);
+      return invoice;
+    } catch (error) {
+      throw error;
+    }
   };
 
   post = async (data: TCreditPayment): Promise<TCreditPaymentEndpoint> => {
-    const payment = await this.creditPaymentService.post(data);
-    if (!payment) throw new Error("error at create credit payment");
-    return payment;
+    try {
+      const invoice = await this.creditPaymentService.post(data);
+      if (!invoice) {
+        throw new Error("error at create customer");
+      }
+      return invoice;
+    } catch (error) {
+      throw error;
+    }
   };
 
-  patch = async (id: number, data: TCreditPayment): Promise<TCreditPaymentEndpoint> => {
-    const payment = await this.creditPaymentService.patch(id, data);
-    if (!payment) throw new Error("error at update credit payment");
-    return payment;
+  patch = async (
+    id: number,
+    data: TCreditPayment
+  ): Promise<TCreditPaymentEndpoint> => {
+    try {
+      const invoice = await this.creditPaymentService.patch(id, data);
+      if (!invoice) {
+        throw new Error("error at update source");
+      }
+      return invoice;
+    } catch (error) {
+      throw error;
+    }
   };
 
   delete = async (id: number): Promise<TCreditPaymentEndpoint> => {
-    const payment = await this.creditPaymentService.delete(id);
-    if (!payment) throw new Error("error at delete credit payment");
-    return payment;
+    try {
+      const invoice = await this.creditPaymentService.delete(id);
+      if (!invoice) {
+        throw new Error("error at delete source");
+      }
+      return invoice;
+    } catch (error) {
+      throw error;
+    }
   };
 }
