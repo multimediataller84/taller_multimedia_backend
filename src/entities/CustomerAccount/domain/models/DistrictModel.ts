@@ -5,7 +5,7 @@ import {
   type InferCreationAttributes,
   type ForeignKey,
 } from "sequelize";
-import { sequelize } from "../../database/connection.js";
+import { sequelize } from "../../../../database/connection.js";
 import Canton from "./CantonModel.js";
 
 class District extends Model<

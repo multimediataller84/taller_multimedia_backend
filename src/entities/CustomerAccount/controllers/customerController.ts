@@ -35,6 +35,33 @@ export class CustomerController implements ICustomerController {
     }
   };
 
+  getAllProvince = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const result = await this.useCases.getAllProvince.execute();
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  };
+
+  getAllCanton = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const result = await this.useCases.getAllCanton.execute();
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  };
+
+  getAllDistrict = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const result = await this.useCases.getAllDistrict.execute();
+      res.status(200).json(result);
+    } catch (error: any) {
+      res.status(404).json({ error: error.message });
+    }
+  };
+
   post = async (req: Request, res: Response): Promise<void> => {
     try {
       const result = await this.useCases.post.execute(req.body);
