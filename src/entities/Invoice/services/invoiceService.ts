@@ -10,12 +10,12 @@ import { sequelize } from "../../../database/connection.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
 import CreditPayment from "../../CreditPayment/domain/models/CreditPaymentModel.js";
 import CashRegister from "../../CashRegister/domain/models/CashRegisterModel.js";
-import { PDFGenerator } from "../../ElectronicInvoice/services/PDFGenerator.js";
-import { jsonTest } from "../../ElectronicInvoice/utils/testInvoice.js";
-import path from "path";
 import type { TBuffer } from "../domain/types/TBuffer.js";
 import User from "../../User/domain/models/UserModel.js";
 import Role from "../../Role/domain/models/RoleModel.js";
+import { ConvertJSON } from "../../ElectronicInvoice/services/pdf/convertJSON.js";
+import { PDFFactory } from "../../ElectronicInvoice/services/pdf/PDFFactory.js";
+import type { PDFType } from "../../ElectronicInvoice/domain/types/PDFType.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -295,7 +295,14 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       await transaction.commit();
-      const invoicePDF = new PDFGenerator(jsonTest);
+
+      const pdfType: PDFType = "A4";
+
+      const convertPdf = new ConvertJSON(invoice.dataValues, productsWithTax);
+      const invoicePDF = PDFFactory.createPDF(
+        pdfType,
+        await convertPdf.transformJSON()
+      );
       const buffer: Buffer = await invoicePDF.generate();
 
       return { name: uuid, file: buffer };
@@ -359,8 +366,11 @@ export class InvoiceService implements IInvoiceServices {
   };
 
   delete = async (id: number): Promise<TInvoiceEndpoint> => {
+    const transaction = await sequelize.transaction();
     try {
       const invoice = await Invoice.findByPk(id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
         include: [
           {
             model: Customer,
@@ -396,13 +406,41 @@ export class InvoiceService implements IInvoiceServices {
           },
         ],
       });
+
       if (!invoice) {
-        throw new Error("invoice not found");
+        throw new Error("Invoice not found");
       }
-      await invoice.destroy();
+
+      if (invoice.payment_method === "Credit") {
+        const total = Number(invoice.total ?? 0);
+        const paid = Number(invoice.amount_paid ?? 0);
+        const pending = Math.max(total - paid, 0);
+
+        if (pending > 0) {
+          const credit = await Credit.findOne({
+            where: { customer_id: invoice.customer_id },
+            transaction,
+            lock: transaction.LOCK.UPDATE,
+          });
+
+          if (credit) {
+            const newBalance = Number(credit.balance ?? 0) + pending;
+            await credit.update({ balance: newBalance }, { transaction });
+          }
+        }
+      }
+
+      if (invoice.products && invoice.products.length > 0) {
+        await invoice.setProducts([], { transaction });
+      }
+
+      await invoice.destroy({ transaction });
+      await transaction.commit();
+
       return invoice;
     } catch (error) {
-      throw error;
+      await transaction.rollback();
+      throw new Error("Error at: " + error);
     }
   };
 }
