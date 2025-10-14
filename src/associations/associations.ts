@@ -12,6 +12,7 @@ import Province from "../domain/models/ProvinceModel.js";
 import Canton from "../domain/models/CantonModel.js";
 import District from "../domain/models/DistrictModel.js";
 import CashRegister from "../entities/CashRegister/domain/models/CashRegisterModel.js";
+import UnitMeasure from "../entities/Product/domain/models/UnitMeasure.js";
 
 export function setupAssociations() {
   // Role <->  User arreglada terminada
@@ -80,4 +81,14 @@ export function setupAssociations() {
   // seguimiento de las facturas por empleado
   Invoice.belongsTo(User, { foreignKey: "user_id", as: "user" });
   User.hasMany(Invoice, { foreignKey: "user_id", as: "invoices" });
+
+  UnitMeasure.hasMany(Product, {
+    foreignKey: "unit_measure_id",
+    as: "products",
+  });
+
+  Product.belongsTo(UnitMeasure, {
+    foreignKey: "unit_measure_id",
+    as: "unit_measure",
+  });
 }

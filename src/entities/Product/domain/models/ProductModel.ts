@@ -7,6 +7,7 @@ import {
 } from "sequelize";
 import { sequelize } from "../../../../database/connection.js";
 import type { TProductStatus } from "../types/TProductStatus.js";
+import type UnitMeasure from "./UnitMeasure.js";
 
 class Product extends Model<
   InferAttributes<Product>,
@@ -19,7 +20,9 @@ class Product extends Model<
   declare tax_id: number;
   declare profit_margin: number;
   declare unit_price: number;
+  declare unit_measure_id: number;
   declare stock: number;
+  declare unit_measure?: UnitMeasure;
   declare state: CreationOptional<TProductStatus>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -56,6 +59,16 @@ Product.init(
     unit_price: {
       type: DataTypes.DECIMAL(12, 2),
       allowNull: false,
+    },
+    unit_measure_id: {
+      type: DataTypes.INTEGER.UNSIGNED,
+      allowNull: false,
+      references: {
+        model: "unit_measures",
+        key: "id",
+      },
+      onUpdate: "CASCADE",
+      onDelete: "RESTRICT",
     },
     stock: {
       type: DataTypes.INTEGER.UNSIGNED,
