@@ -1,5 +1,6 @@
 import axios from "axios";
 import type { TEmitter } from "../../domain/types/TElectroniceInvoice.js";
+
 export class SendHacienda {
   constructor(readonly url: string, readonly ambiente: string) {
     this.url = url;
