@@ -5,7 +5,7 @@ import {
   type InferCreationAttributes,
   type CreationOptional,
 } from "sequelize";
-import { sequelize } from "../../database/connection.js";
+import { sequelize } from "../../../../database/connection.js";
 
 class Province extends Model<
   InferAttributes<Province>,

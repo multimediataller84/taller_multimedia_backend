@@ -6,7 +6,7 @@ import {
   type CreationOptional,
   type ForeignKey,
 } from "sequelize";
-import { sequelize } from "../../database/connection.js";
+import { sequelize } from "../../../../database/connection.js";
 import Province from "./ProvinceModel.js";
 
 class Canton extends Model<

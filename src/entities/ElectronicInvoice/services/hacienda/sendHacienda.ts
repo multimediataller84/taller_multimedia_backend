@@ -1,9 +1,5 @@
 import axios from "axios";
 import type { TEmitter } from "../../domain/types/TElectroniceInvoice.js";
-import Province from "../../../../domain/models/ProvinceModel.js";
-import Canton from "../../../../domain/models/CantonModel.js";
-import District from "../../../../domain/models/DistrictModel.js";
-
 export class SendHacienda {
   constructor(readonly url: string, readonly ambiente: string) {
     this.url = url;

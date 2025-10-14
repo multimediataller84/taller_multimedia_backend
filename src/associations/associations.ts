@@ -8,9 +8,9 @@ import Category from "../entities/Category/domain/models/CategoryModel.js";
 import Tax from "../entities/Tax/domain/models/TaxModel.js";
 import Product from "../entities/Product/domain/models/ProductModel.js";
 import InvoiceProducts from "../entities/Invoice/domain/models/InvoiceProducts.js";
-import Province from "../domain/models/ProvinceModel.js";
-import Canton from "../domain/models/CantonModel.js";
-import District from "../domain/models/DistrictModel.js";
+import Province from "../entities/CustomerAccount/domain/models/ProvinceModel.js";
+import Canton from "../entities/CustomerAccount/domain/models/CantonModel.js";
+import District from "../entities/CustomerAccount/domain/models/DistrictModel.js";
 import CashRegister from "../entities/CashRegister/domain/models/CashRegisterModel.js";
 import UnitMeasure from "../entities/Product/domain/models/UnitMeasure.js";
 
@@ -91,4 +91,14 @@ export function setupAssociations() {
     foreignKey: "unit_measure_id",
     as: "unit_measure",
   });
+
+// Customer relations
+Province.hasMany(Customer, { foreignKey: "province_id", as: "customers" });
+Customer.belongsTo(Province, { foreignKey: "province_id", as: "province" });
+
+Canton.hasMany(Customer, { foreignKey: "canton_id", as: "customers" });
+Customer.belongsTo(Canton, { foreignKey: "canton_id", as: "canton" });
+
+District.hasMany(Customer, { foreignKey: "district_id", as: "customers" });
+Customer.belongsTo(District, { foreignKey: "district_id", as: "district" });
 }
