@@ -5,7 +5,6 @@ import type { TCreditPayment } from "../domain/types/TCreditPayment.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
 import Invoice from "../../Invoice/domain/models/InvoiceModel.js";
 import { sequelize } from "../../../database/connection.js";
-import { Op, type FindOptions } from "sequelize";
 
 export class CreditPaymentService implements ICreditPaymentServices {
   private static instance: CreditPaymentService;
@@ -18,74 +17,132 @@ export class CreditPaymentService implements ICreditPaymentServices {
   }
 
   get = async (id: number): Promise<TCreditPaymentEndpoint> => {
-    const payment = await CreditPayment.findByPk(id, {
-      include: [
-        { model: Credit, as: "credit", attributes: ["id", "approved_credit_amount", "balance", "status"] },
-        {
-          model: Invoice,
-          as: "invoice",
-          attributes: [
-            "id",
-            "issue_date",
-            "due_date",
-            "subtotal",
-            "tax_total",
-            "total",
-            "amount_paid",
-            "payment_method",
-            "status",
-            "invoice_number",
-            "digital_signature",
-            "biometric_hash",
-          ],
-        },
-      ],
-    });
-    if (!payment) throw new Error("payment not found");
-    return payment;
+    try {
+      const payment = await CreditPayment.findByPk(id, {
+        include: [
+          {
+            model: Credit,
+            as: "credit",
+            attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
+          {
+            model: Invoice,
+            as: "invoice",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
+          },
+        ],
+      });
+      if (!payment) {
+        throw new Error("payment not found");
+      }
+      return payment;
+    } catch (error) {
+      throw error;
+    }
   };
 
-  getAll = async (credit_id?: number): Promise<TCreditPaymentEndpoint[]> => {
-    const options: FindOptions = {
-      order: [["createdAt", "DESC"]],
-      include: [
-        { model: Credit, as: "credit", attributes: ["id", "approved_credit_amount", "balance", "status"] },
-        {
-          model: Invoice,
-          as: "invoice",
-          attributes: [
-            "id",
-            "issue_date",
-            "due_date",
-            "subtotal",
-            "tax_total",
-            "total",
-            "amount_paid",
-            "payment_method",
-            "status",
-            "invoice_number",
-            "digital_signature",
-            "biometric_hash",
-          ],
-        },
-      ],
-    };
+  getAll = async (): Promise<TCreditPaymentEndpoint[]> => {
+    try {
+      const payments = await CreditPayment.findAll({
+        include: [
+          {
+            model: Credit,
+            as: "credit",
+            attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
+          {
+            model: Invoice,
+            as: "invoice",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
+          },
+        ],
+      });
+      if (!payments) throw new Error("payment not found");
 
-    if (typeof credit_id === "number") {
-      options.where = { credit_id: { [Op.eq]: credit_id } };
+      return payments;
+    } catch (error) {
+      throw new Error("error: " + error);
     }
+  };
 
-    const payments = await CreditPayment.findAll(options);
-    return payments ?? [];
+  getAllByUser = async (id: number): Promise<TCreditPaymentEndpoint[]> => {
+    try {
+      const payments = await CreditPayment.findAll({
+        where: { credit_id: id },
+        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: Credit,
+            as: "credit",
+            attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
+          {
+            model: Invoice,
+            as: "invoice",
+            attributes: [
+              "id",
+              "issue_date",
+              "due_date",
+              "subtotal",
+              "tax_total",
+              "total",
+              "amount_paid",
+              "payment_method",
+              "status",
+              "invoice_number",
+              "digital_signature",
+              "biometric_hash",
+            ],
+          },
+        ],
+      });
+      if (!payments) throw new Error("payment not found");
+
+      return payments;
+    } catch (error) {
+      throw new Error("error: " + error);
+    }
   };
 
   post = async (data: TCreditPayment): Promise<TCreditPaymentEndpoint> => {
     const transaction = await sequelize.transaction();
     try {
-      const credit = await Credit.findByPk(data.credit_id, { transaction, lock: transaction.LOCK.UPDATE });
+      const credit = await Credit.findByPk(data.credit_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
       if (!credit) throw new Error("Credit not found");
 
-      const invoice = await Invoice.findByPk(data.invoice_id, { transaction, lock: transaction.LOCK.UPDATE });
+      const invoice = await Invoice.findByPk(data.invoice_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
       if (!invoice) throw new Error("Invoice not found");
 
       if (data.payment_method === "Credit") {
@@ -97,15 +154,15 @@ export class CreditPaymentService implements ICreditPaymentServices {
       const paymentAmount = Number(data.amount);
 
       if (amountPaid >= total) throw new Error("Invoice is already fully paid");
-      if (amountPaid + paymentAmount > total) throw new Error("Payment exceeds the total of the invoice");
+      if (amountPaid + paymentAmount > total)
+        throw new Error("Payment exceeds the total of the invoice");
 
       const newPaid = amountPaid + paymentAmount;
       invoice.set({ amount_paid: newPaid });
       await invoice.save({ transaction });
 
       const newBalance = Number(credit.balance) + paymentAmount;
-      credit.set({ balance: newBalance });
-      await credit.save({ transaction });
+      await credit.update({ balance: newBalance }, { transaction });
 
       const payment = await CreditPayment.create(
         {
@@ -123,15 +180,25 @@ export class CreditPaymentService implements ICreditPaymentServices {
     }
   };
 
-  patch = async (id: number, data: TCreditPayment): Promise<TCreditPaymentEndpoint> => {
-    const payment = await CreditPayment.findByPk(id);
-    if (!payment) throw new Error("payment not found");
-    await payment.update(data);
-    return this.get(id);
+  patch = async (
+    id: number,
+    data: TCreditPayment
+  ): Promise<TCreditPaymentEndpoint> => {
+    try {
+      const payment = await CreditPayment.findByPk(id);
+      if (!payment) {
+        throw new Error("payment not found");
+      }
+      await payment.update(data);
+      const fixPayment = await this.get(id);
+
+      return fixPayment ?? payment;
+    } catch (error) {
+      throw error;
+    }
   };
 
   delete = async (id: number): Promise<TCreditPaymentEndpoint> => {
-    
     const transaction = await sequelize.transaction();
     try {
       const payment = await CreditPayment.findByPk(id, {
@@ -140,21 +207,28 @@ export class CreditPaymentService implements ICreditPaymentServices {
       });
       if (!payment) throw new Error("payment not found");
 
-      const credit = await Credit.findByPk(payment.credit_id, { transaction, lock: transaction.LOCK.UPDATE });
+      const credit = await Credit.findByPk(payment.credit_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
       if (!credit) throw new Error("credit not found");
 
-      const invoice = await Invoice.findByPk(payment.invoice_id, { transaction, lock: transaction.LOCK.UPDATE });
+      const invoice = await Invoice.findByPk(payment.invoice_id, {
+        transaction,
+        lock: transaction.LOCK.UPDATE,
+      });
       if (!invoice) throw new Error("invoice not found");
 
       const amount = Number(payment.amount);
 
-      const revertedPaid = Math.max(Number(invoice.amount_paid ?? 0) - amount, 0);
-      invoice.set({ amount_paid: revertedPaid });
-      await invoice.save({ transaction });
+      const revertedPaid = Math.max(
+        Number(invoice.amount_paid ?? 0) - amount,
+        0
+      );
+      await invoice.update({ amount_paid: revertedPaid }, { transaction });
 
       const revertedBalance = Math.max(Number(credit.balance) - amount, 0);
-      credit.set({ balance: revertedBalance });
-      await credit.save({ transaction });
+      await credit.update({ balance: revertedBalance }, { transaction });
 
       await payment.destroy({ transaction });
 
@@ -162,7 +236,11 @@ export class CreditPaymentService implements ICreditPaymentServices {
 
       const out = await CreditPayment.findByPk(id, {
         include: [
-          { model: Credit, as: "credit", attributes: ["id", "approved_credit_amount", "balance", "status"] },
+          {
+            model: Credit,
+            as: "credit",
+            attributes: ["id", "approved_credit_amount", "balance", "status"],
+          },
           {
             model: Invoice,
             as: "invoice",
@@ -185,7 +263,7 @@ export class CreditPaymentService implements ICreditPaymentServices {
         paranoid: false,
       });
 
-      return (out as unknown as TCreditPaymentEndpoint) ?? (payment as any);
+      return out ?? payment;
     } catch (error) {
       await transaction.rollback();
       throw error;

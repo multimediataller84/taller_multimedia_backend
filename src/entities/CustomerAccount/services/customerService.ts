@@ -4,6 +4,12 @@ import type { TCustomerEndpoint } from "../domain/types/TCustomerEndpoint.js";
 import type { TCustomer } from "../domain/types/TCustomer.js";
 import Credit from "../../Credit/domain/models/CreditModel.js";
 import Invoice from "../../Invoice/domain/models/InvoiceModel.js";
+import Province from "../domain/models/ProvinceModel.js";
+import Canton from "../domain/models/CantonModel.js";
+import District from "../domain/models/DistrictModel.js";
+import type { TDistrict } from "../domain/types/TDistrict.js";
+import type { TCanton } from "../domain/types/TCanton.js";
+import type { TProvince } from "../domain/types/TProvince.js";
 
 export class CustomerService implements ICustomerServices {
   private static instance: CustomerService;
@@ -42,6 +48,9 @@ export class CustomerService implements ICustomerServices {
               "biometric_hash",
             ],
           },
+          { model: Province, as: "province", attributes: ["id", "name"] },
+          { model: Canton, as: "canton", attributes: ["id", "name"] },
+          { model: District, as: "district", attributes: ["id", "name"] },
         ],
       });
       if (!customer) {
@@ -80,6 +89,9 @@ export class CustomerService implements ICustomerServices {
               "biometric_hash",
             ],
           },
+          { model: Province, as: "province", attributes: ["id", "name"] },
+          { model: Canton, as: "canton", attributes: ["id", "name"] },
+          { model: District, as: "district", attributes: ["id", "name"] },
         ],
       });
       if (customer.length === 0) {
@@ -91,11 +103,59 @@ export class CustomerService implements ICustomerServices {
     }
   };
 
+  getAllProvince = async (): Promise<TProvince[]> => {
+    try {
+      const provinces = await Province.findAll();
+      if (provinces.length === 0) throw new Error("provinces dont exist");
+      return provinces;
+    } catch (error) {
+      throw new Error("error" + error);
+    }
+  };
+
+  getAllCanton = async (): Promise<TCanton[]> => {
+    try {
+      const canton = await Canton.findAll();
+      if (canton.length === 0) throw new Error("canton dont exist");
+      return canton;
+    } catch (error) {
+      throw new Error("error" + error);
+    }
+  };
+
+  getAllDistrict = async (): Promise<TDistrict[]> => {
+    try {
+      const district = await District.findAll();
+      if (district.length === 0) throw new Error("district dont exist");
+      return district;
+    } catch (error) {
+      throw new Error("error" + error);
+    }
+  };
+
   post = async (data: TCustomer): Promise<TCustomerEndpoint> => {
     try {
-      const { id_number } = data;
+      const { email, id_number } = data;
       const exists = await Customer.findOne({ where: { id_number } });
       if (exists) throw new Error("Customer already exists");
+
+      const emailExist = await Customer.findOne({ where: { email } });
+      if (emailExist) throw new Error("Customer already exists");
+
+      const cantonExist = await Canton.findOne({
+        where: { id: data.canton_id },
+      });
+      if (!cantonExist) throw new Error("canton dont exists");
+
+      const provinceExist = await Province.findOne({
+        where: { id: data.province_id },
+      });
+      if (!provinceExist) throw new Error("province dont exists");
+
+      const districtExist = await District.findOne({
+        where: { id: data.district_id },
+      });
+      if (!districtExist) throw new Error("district dont exists");
 
       const customer = await Customer.create(data);
       return customer;
@@ -146,6 +206,9 @@ export class CustomerService implements ICustomerServices {
               "biometric_hash",
             ],
           },
+          { model: Province, as: "province", attributes: ["id", "name"] },
+          { model: Canton, as: "canton", attributes: ["id", "name"] },
+          { model: District, as: "district", attributes: ["id", "name"] },
         ],
       });
       if (!customer) {

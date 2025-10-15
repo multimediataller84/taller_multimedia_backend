@@ -34,6 +34,11 @@ export class ProductService implements IProductServices {
             as: "category",
             attributes: ["name", "description"],
           },
+          {
+            model: UnitMeasure,
+            as: "unit_measure",
+            attributes: ["id", "symbol", "description"],
+          },
         ],
       });
       if (!product) {
@@ -76,6 +81,11 @@ export class ProductService implements IProductServices {
             model: Category,
             as: "category",
             attributes: ["name", "description"],
+          },
+          {
+            model: UnitMeasure,
+            as: "unit_measure",
+            attributes: ["id", "symbol", "description"],
           },
         ],
       });
@@ -135,6 +145,11 @@ export class ProductService implements IProductServices {
             as: "category",
             attributes: ["name", "description"],
           },
+          {
+            model: UnitMeasure,
+            as: "unit_measure",
+            attributes: ["id", "symbol", "description"],
+          },
         ],
       });
 
@@ -164,6 +179,11 @@ export class ProductService implements IProductServices {
             as: "category",
             attributes: ["name", "description"],
           },
+          {
+            model: UnitMeasure,
+            as: "unit_measure",
+            attributes: ["id", "symbol", "description"],
+          },
         ],
       });
 
@@ -186,6 +206,11 @@ export class ProductService implements IProductServices {
             model: Category,
             as: "category",
             attributes: ["name", "description"],
+          },
+          {
+            model: UnitMeasure,
+            as: "unit_measure",
+            attributes: ["id", "symbol", "description"],
           },
         ],
       });

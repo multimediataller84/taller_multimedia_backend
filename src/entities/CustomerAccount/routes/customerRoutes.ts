@@ -32,6 +32,10 @@ const customerRouter = express.Router();
  */
 customerRouter.get("/all", customerController.getAll);
 
+customerRouter.get("/province/all", customerController.getAllProvince);
+customerRouter.get("/canton/all", customerController.getAllCanton);
+customerRouter.get("/district/all", customerController.getAllDistrict);
+
 /**
  * @openapi
  * /customer/{id}:

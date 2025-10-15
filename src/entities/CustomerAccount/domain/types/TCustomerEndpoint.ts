@@ -6,6 +6,9 @@ export type TCustomerEndpoint = {
   id_number: string;
   email: string;
   phone: number;
+  province_id: number;
+  canton_id: number;
+  district_id: number;
   createdAt: Date;
   updatedAt: Date;
 };
