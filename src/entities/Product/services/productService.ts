@@ -113,7 +113,7 @@ export class ProductService implements IProductServices {
 
   post = async (data: TProduct): Promise<TProductEndpoint> => {
     try {
-      const { sku, category_id, tax_id } = data;
+      const { sku, category_id, tax_id, unit_measure_id } = data;
 
       if (!tax_id) throw new Error("tax_id is required");
       if (!category_id) throw new Error("category_id is required");
@@ -126,6 +126,9 @@ export class ProductService implements IProductServices {
 
       const tax = await Tax.findByPk(Number(tax_id));
       if (!tax) throw new Error("tax not found");
+
+      const unit_measure = await UnitMeasure.findByPk(Number(unit_measure_id));
+      if (!unit_measure) throw new Error("unit measure not found");
 
       const created = await Product.create({
         ...data,
