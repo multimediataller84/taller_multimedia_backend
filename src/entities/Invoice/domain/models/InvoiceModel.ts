@@ -38,6 +38,14 @@ class Invoice extends Model<
   declare biometric_hash: string | null;
   declare cash_register_id: number;
   declare user_id: number;
+  declare payment_receipt?: string | null;
+  declare branch: string | null;
+  declare terminal: string | null;
+  declare type: string | null;
+  declare sequence: number | null;
+  declare consecutive: string | null;
+  declare consecutive_formatted: string | null;
+
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
   declare customer?: Customer;
@@ -99,6 +107,11 @@ Invoice.init(
       allowNull: false,
       unique: true,
     },
+    payment_receipt: {
+      type: DataTypes.STRING(512),
+      allowNull: true,
+      unique: true,
+    },
     cash_register_id: {
       type: DataTypes.INTEGER.UNSIGNED,
       allowNull: false,
@@ -121,6 +134,31 @@ Invoice.init(
     },
     biometric_hash: {
       type: DataTypes.STRING(512),
+      allowNull: true,
+    },
+    branch: {
+      type: DataTypes.STRING(3),
+      allowNull: true,
+    },
+    terminal: {
+      type: DataTypes.STRING(2),
+      allowNull: true,
+    },
+    type: {
+      type: DataTypes.STRING(2),
+      allowNull: true,
+    },
+    sequence: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    consecutive: {
+      type: DataTypes.STRING(20),
+      allowNull: true,
+      unique: true,
+    },
+    consecutive_formatted: {
+      type: DataTypes.STRING(30),
       allowNull: true,
     },
     createdAt: {

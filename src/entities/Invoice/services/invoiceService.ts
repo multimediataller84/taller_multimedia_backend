@@ -16,6 +16,8 @@ import Role from "../../Role/domain/models/RoleModel.js";
 import { ConvertJSON } from "../../ElectronicInvoice/services/pdf/convertJSON.js";
 import { PDFFactory } from "../../ElectronicInvoice/services/pdf/PDFFactory.js";
 import type { PDFType } from "../../ElectronicInvoice/domain/types/PDFType.js";
+import { ConsecutiveService } from "../../ElectronicInvoice/services/generateConsecutive.js";
+import { receiptTypes } from "../../ElectronicInvoice/domain/types/TReceiptTypes.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -149,6 +151,27 @@ export class InvoiceService implements IInvoiceServices {
     const transaction = await sequelize.transaction();
 
     try {
+      if (
+        data.payment_method === "Debit Card" ||
+        data.payment_method === "Transfer"
+      ) {
+        if (!data.payment_receipt || data.payment_receipt.trim() === "") {
+          throw new Error(
+            "Payment receipt is required for Debit Card or Transfer"
+          );
+        }
+
+        const payment_receipt = await Invoice.findOne({
+          transaction,
+          lock: transaction.LOCK.UPDATE,
+          where: {
+            payment_receipt: data.payment_receipt,
+          },
+        });
+
+        if (payment_receipt) throw new Error("Payment receipt already exists");
+      }
+
       const customer = await Customer.findByPk(data.customer_id, {
         transaction,
         lock: transaction.LOCK.UPDATE,
@@ -263,6 +286,13 @@ export class InvoiceService implements IInvoiceServices {
         await registered.update({ amount: newAmount }, { transaction });
       }
 
+      const consecutive = await ConsecutiveService.getNext(
+        "001",
+        "01",
+        receiptTypes.ELECTRONIC_INVOICE,
+        transaction
+      );
+
       const invoice = await Invoice.create(
         {
           customer_id: data.customer_id,
@@ -276,9 +306,16 @@ export class InvoiceService implements IInvoiceServices {
           user_id: data.user_id,
           status: data.status,
           invoice_number: uuid,
+          payment_receipt: data.payment_receipt ?? null,
           biometric_hash: data.biometric_hash ?? null,
           digital_signature: data.digital_signature ?? null,
           cash_register_id: data.cash_register_id,
+          branch: consecutive?.sucursal ?? null,
+          consecutive: consecutive?.consecutive ?? null,
+          consecutive_formatted: consecutive?.consecutiveFormatted ?? null,
+          sequence: consecutive?.sequence ?? null,
+          terminal: consecutive?.terminal ?? null,
+          type: consecutive?.tipo ?? null,
         },
         { transaction }
       );
@@ -296,9 +333,13 @@ export class InvoiceService implements IInvoiceServices {
 
       await transaction.commit();
 
-      const pdfType: PDFType = "A4";
+      const pdfType: PDFType = "TICKET";
 
-      const convertPdf = new ConvertJSON(invoice.dataValues, productsWithTax);
+      const convertPdf = new ConvertJSON(
+        invoice.dataValues,
+        productsWithTax,
+        consecutive
+      );
       const invoicePDF = PDFFactory.createPDF(
         pdfType,
         await convertPdf.transformJSON()

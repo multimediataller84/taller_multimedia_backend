@@ -1,4 +1,3 @@
-import { generateConsecutive } from "../../utils/generateConsecutive.js";
 import type { TElectroniceInvoice } from "../../domain/types/TElectroniceInvoice.js";
 
 export class ElectroniceInvoiceXML {
@@ -16,7 +15,7 @@ export class ElectroniceInvoiceXML {
     const year = String(fecha.getFullYear()).slice(-2);
     
     const id_number = this.invoice.emisor.identificacion.padStart(12, '0');
-    const consecutivo = generateConsecutive(1);
+    const consecutivo = this.invoice.consecutivo;
     const situation = '1';
     const securityCode = String(Math.floor(Math.random() * 100000000)).padStart(8, '0');
     
