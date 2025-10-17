@@ -2,9 +2,9 @@ import PDFDocument from "pdfkit";
 import type { TElectronicInvoiceJSON } from "../../domain/types/TElectronicInvoiceJSON.js";
 import { GeneratePDF } from "../../domain/abstract/abstractClassPDF.js";
 
-export class PDFGeneratorA4 extends GeneratePDF{
+export class PDFGeneratorA4 extends GeneratePDF {
   constructor(readonly invoice: TElectronicInvoiceJSON) {
-    super(invoice)
+    super(invoice);
   }
 
   async generate(): Promise<Buffer> {
@@ -75,6 +75,9 @@ export class PDFGeneratorA4 extends GeneratePDF{
       )
       .text(`Teléfono: ${receptor.telefono}`)
       .text(`Correo: ${receptor.email}`)
+      .text(`Provincia: ${receptor.provincia_id}`)
+      .text(`Canton: ${receptor.canton_id}`)
+      .text(`Distrito: ${receptor.distrito_id}`)
       .moveDown(1);
   }
 

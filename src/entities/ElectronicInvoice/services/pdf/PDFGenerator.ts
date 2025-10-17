@@ -8,7 +8,7 @@ export class PDFGenerator extends GeneratePDF {
   }
 
   async generate(): Promise<Buffer> {
-    const baseHeight = 350;
+    const baseHeight = 400;
     const lineHeight = 22;
     const detalles = this.invoice.detalles || [];
     const dynamicHeight = baseHeight + detalles.length * lineHeight;
@@ -87,6 +87,9 @@ export class PDFGenerator extends GeneratePDF {
       .text(`Cédula: ${receptor.identificacion}`)
       .text(`Teléfono: ${receptor.telefono}`)
       .text(`Correo: ${receptor.email}`)
+      .text(`Provincia: ${receptor.provincia_id}`)
+      .text(`Canton: ${receptor.canton_id}`)
+      .text(`Distrito: ${receptor.distrito_id}`)
       .moveDown(0.3)
       .text(
         "-----------------------------------------------------------------------------",
@@ -193,23 +196,65 @@ export class PDFGenerator extends GeneratePDF {
       0
     );
 
-    const totalImpuesto = detalles.reduce(
-      (acc: number, item: any) =>
-        acc +
-        item.cantidad * item.precioUnitario * (item.impuesto.tarifa / 100),
+    const impuestosPorTarifa = detalles.reduce((acc: any, item: any) => {
+      const tarifa = item.impuesto.tarifa;
+      const subtotalItem = item.cantidad * item.precioUnitario;
+      const impuestoItem = subtotalItem * (tarifa / 100);
+
+      if (!acc[tarifa]) {
+        acc[tarifa] = {
+          tarifa: tarifa,
+          subtotal: 0,
+          impuesto: 0,
+        };
+      }
+
+      acc[tarifa].subtotal += subtotalItem;
+      acc[tarifa].impuesto += impuestoItem;
+
+      return acc;
+    }, {});
+
+    const totalImpuesto = Object.values(impuestosPorTarifa).reduce(
+      (acc: number, grupo: any) => acc + grupo.impuesto,
       0
     );
 
-    const totalGeneral = subtotal + totalImpuesto;
+    const total = subtotal + totalImpuesto;
+
+    const tarifasOrdenadas = Object.values(impuestosPorTarifa).sort(
+      (a: any, b: any) => a.tarifa - b.tarifa
+    );
 
     doc
+      .font("Helvetica-Bold")
+      .fontSize(9)
+      .text("Desglose de Impuestos: ")
+      .font("Helvetica")
+      .moveDown(0.2);
+
+    tarifasOrdenadas.forEach((grupo: any) => {
+      doc
+        .fontSize(8)
+        .text(
+          `IVA ${grupo.tarifa}%:  Total: ${grupo.impuesto.toFixed(
+            2
+          )} ${moneda}`,
+          { align: "right" }
+        );
+    });
+
+    doc
+      .font("Helvetica")
       .fontSize(8)
-      .text(`Subtotal:  ${subtotal.toFixed(2)} ${moneda}`)
+      .text(`Subtotal:  ${subtotal.toFixed(2)} ${moneda}`, { align: "right" })
       .moveDown(0.2)
-      .text(`IVA:       ${totalImpuesto.toFixed(2)} ${moneda}`)
+      .text(`IVA:       ${totalImpuesto.toFixed(2)} ${moneda}`, {
+        align: "right",
+      })
       .moveDown(0.2)
       .font("Helvetica-Bold")
-      .text(`TOTAL:     ${totalGeneral.toFixed(2)} ${moneda}`)
+      .text(`TOTAL:     ${total.toFixed(2)} ${moneda}`, { align: "right" })
       .font("Helvetica")
       .moveDown(0.3)
       .text(
