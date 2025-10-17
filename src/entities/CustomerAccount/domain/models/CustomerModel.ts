@@ -11,6 +11,7 @@ import type Invoice from "../../../Invoice/domain/models/InvoiceModel.js";
 import type Province from "./ProvinceModel.js";
 import type Canton from "./CantonModel.js";
 import type District from "./DistrictModel.js";
+import type { TIdentificationType } from "../types/TIdentificationType.js";
 
 class Customer extends Model<
   InferAttributes<Customer>,
@@ -26,6 +27,7 @@ class Customer extends Model<
   declare province_id: number;
   declare canton_id: number;
   declare district_id: number;
+  declare identification_type: TIdentificationType;
   declare province?: Province;
   declare canton?: Canton;
   declare district?: District;
@@ -58,6 +60,10 @@ Customer.init(
       type: DataTypes.STRING,
       allowNull: false,
       unique: true,
+    },
+    identification_type: {
+      type: DataTypes.ENUM("Cédula Física", "Cédula Jurídica", "DIMEX", "NITE", "Extranjero no domiciliado"),
+      allowNull: false,
     },
     email: {
       type: DataTypes.STRING,
