@@ -8,6 +8,7 @@ import {
 import { sequelize } from "../../../../database/connection.js";
 import type { TProductStatus } from "../types/TProductStatus.js";
 import type UnitMeasure from "./UnitMeasure.js";
+import type Tax from "../../../Tax/domain/models/TaxModel.js";
 
 class Product extends Model<
   InferAttributes<Product>,
@@ -23,6 +24,7 @@ class Product extends Model<
   declare unit_measure_id: number;
   declare stock: number;
   declare unit_measure?: UnitMeasure;
+  declare tax?: Tax;
   declare state: CreationOptional<TProductStatus>;
   declare createdAt: CreationOptional<Date>;
   declare updatedAt: CreationOptional<Date>;
@@ -95,6 +97,11 @@ Product.init(
     sequelize,
     modelName: "Product",
     tableName: "products",
+    indexes: [
+      {
+        fields: ["tax_id"],
+      },
+    ],
     timestamps: true,
   }
 );

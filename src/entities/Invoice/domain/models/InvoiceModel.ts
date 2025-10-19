@@ -176,6 +176,18 @@ Invoice.init(
     sequelize,
     modelName: "Invoice",
     tableName: "invoices",
+    indexes: [
+    {
+      unique: true,
+      fields: ["payment_receipt"],
+    },
+    {
+      fields: ["customer_id"],
+    },
+    {
+      fields: ["user_id"],
+    },
+  ],
     timestamps: true,
   }
 );

@@ -70,6 +70,11 @@ Credit.init(
     sequelize,
     modelName: "Credit",
     tableName: "credits",
+    indexes: [
+    {
+      fields: ["customer_id"],
+    },
+  ],
     timestamps: true,
   }
 );
