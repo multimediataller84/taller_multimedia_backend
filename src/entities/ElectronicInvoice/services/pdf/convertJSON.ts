@@ -14,6 +14,8 @@ import type { TElectronicInvoiceJSON } from "../../domain/types/TElectronicInvoi
 import type { TTaxEndpoint } from "../../../Tax/domain/types/TTaxEndpoint.js";
 import { idNumberMap } from "../../utils/codeIDNumberConverter.js";
 import type { IConsecutiveResult } from "../../domain/interfaces/IConsecutiveResult.js";
+import UnitMeasure from "../../../Product/domain/models/UnitMeasure.js";
+import type { TUnitMeasure } from "../../../Product/domain/types/TUnitMeasure.js";
 
 moment.locale("es");
 
@@ -96,8 +98,9 @@ export class ConvertJSON {
 
   private async getDetails(): Promise<TLineDetails[]> {
     return await Promise.all(
-      this.products.map(async (item: TProductDetails, index: number) => {
+      this.products.map(async (item: TProductDetails) => {
         const tax = await this.getTax(item.product.tax_id);
+        const unitMeasure = await this.getUnitMeasure(item.product.unit_measure_id)
         return {
           codigoComercial: {
             tipo: "01",
@@ -105,7 +108,7 @@ export class ConvertJSON {
           },
           descripcion: item.product.product_name,
           cantidad: item.quantity,
-          unidadMedida: "NA",
+          unidadMedida: unitMeasure?.symbol ?? "NA",
           precioUnitario: parseFloat(
             String(
               Number(item.product.unit_price) +
@@ -125,7 +128,11 @@ export class ConvertJSON {
 
   private async getTax(id: number): Promise<TTaxEndpoint | null> {
     const tax = await Tax.findByPk(id);
-    tax?.name;
     return tax;
+  }
+
+  private async getUnitMeasure(id: number): Promise<TUnitMeasure | null> {
+    const unitMeasure = await UnitMeasure.findByPk(id);
+    return unitMeasure;
   }
 }

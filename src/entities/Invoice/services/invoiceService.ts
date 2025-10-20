@@ -19,6 +19,7 @@ import type { PDFType } from "../../ElectronicInvoice/domain/types/PDFType.js";
 import { ConsecutiveService } from "../../ElectronicInvoice/services/generateConsecutive.js";
 import { receiptTypes } from "../../ElectronicInvoice/domain/types/TReceiptTypes.js";
 import { Transaction } from "sequelize";
+import { InvoiceProcessor } from "../../ElectronicInvoice/services/hacienda/electroniceInvoiceService.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -150,7 +151,7 @@ export class InvoiceService implements IInvoiceServices {
 
   post = async (data: TInvoice): Promise<TBuffer> => {
     const transaction = await sequelize.transaction();
-    const time = Date.now();
+
     try {
       if (["Debit Card", "Transfer"].includes(data.payment_method)) {
         if (!data.payment_receipt?.trim()) {
@@ -334,12 +335,16 @@ export class InvoiceService implements IInvoiceServices {
         productsWithTax,
         consecutive
       );
+
+      const invoiceProcesor = new InvoiceProcessor();
+      console.log(await invoiceProcesor.processInvoice(await convertPdf.transformJSON()));
+
       const invoicePDF = PDFFactory.createPDF(
         pdfType,
         await convertPdf.transformJSON()
       );
       const buffer: Buffer = await invoicePDF.generate();
-      console.log("time to execute: " + (Date.now() - time));
+
       return { name: uuid, file: buffer };
     } catch (error) {
       const anyTransaction = transaction as any;
