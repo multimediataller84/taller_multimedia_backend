@@ -17,10 +17,10 @@ export type TReceiver = {
   identificacion: string;
   telefono: string;
   email: string;
-  provincia: string;
-  canton: string;
-  distrito: string;
   direccion: string;
+  provincia_id: number;
+  canton_id: number;
+  distrito_id: number;
 };
 
 export type TTax = {

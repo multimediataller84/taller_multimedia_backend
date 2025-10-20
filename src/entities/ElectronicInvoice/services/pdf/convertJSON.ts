@@ -7,12 +7,13 @@ import type {
   TReceiver,
 } from "../../domain/types/TElectroniceInvoice.js";
 import type { TProductDetails } from "../../domain/types/TProductDetails.js";
-import { generateConsecutive } from "../../utils/generateConsecutive.js";
 import { paymentTypeMap } from "../../utils/codePaymentMethodConverter.js";
 import { paymentMethodLangMap } from "../../utils/paymentMethodLangConverter.js";
 import moment from "moment-timezone";
 import type { TElectronicInvoiceJSON } from "../../domain/types/TElectronicInvoiceJSON.js";
 import type { TTaxEndpoint } from "../../../Tax/domain/types/TTaxEndpoint.js";
+import { idNumberMap } from "../../utils/codeIDNumberConverter.js";
+import type { IConsecutiveResult } from "../../domain/interfaces/IConsecutiveResult.js";
 
 moment.locale("es");
 
@@ -21,7 +22,8 @@ export class ConvertJSON {
   private readonly ACTIVITY_CODE: string = "620100";
   constructor(
     private readonly invoice: TInvoiceEndpoint,
-    private readonly products: TProductDetails[]
+    private readonly products: TProductDetails[],
+    private readonly consecutive: IConsecutiveResult,
   ) {}
 
   async transformJSON(): Promise<TElectronicInvoiceJSON> {
@@ -32,7 +34,7 @@ export class ConvertJSON {
 
     return {
       id: this.invoice.id,
-      consecutivo: generateConsecutive(1) ?? this.invoice.invoice_number,
+      consecutivo: this.consecutive.consecutive,
       codigoActividad: this.ACTIVITY_CODE,
       emisor: this.getEmisor(),
       receptor,
@@ -50,15 +52,15 @@ export class ConvertJSON {
   private getEmisor(): TEmitter {
     return {
       nombre: "TRAMO LA MARAVILLA",
-      nombreComercial: "Tramo La Maravilla S.A.",
+      nombreComercial: "VERDULERIA Y CARNICERIA LA MARAVILLA SOCIEDAD ANONIMA",
       tipoIdentificacion: "02",
-      identificacion: "3-101-123456",
-      provincia: "2",
-      canton: "01",
-      distrito: "01",
-      direccion: "Alajuela, Costa Rica",
+      identificacion: "3-101-402977",
+      provincia: "6",
+      canton: "601",
+      distrito: "60101",
+      direccion: "Puntarenas, Costa Rica",
       telefono: "8888-9999",
-      email: "facturacion@empresademo.com",
+      email: "maravilla@facsa.cr",
     };
   }
 
@@ -67,13 +69,14 @@ export class ConvertJSON {
     if (customer) {
       return {
         nombre: `${customer.name} ${customer.last_name}`.trim(),
-        tipoIdentificacion: "01",
+        tipoIdentificacion:
+          idNumberMap.get(customer.identification_type) ?? "01",
         identificacion: String(customer.id_number),
         telefono: String(customer.phone),
         email: customer.email,
-        provincia: "NA",
-        canton: "NA",
-        distrito: "NA",
+        provincia_id: customer.province_id ?? 6,
+        canton_id: customer.canton_id ?? 601,
+        distrito_id: customer.district_id ?? 60101,
         direccion: customer.address,
       };
     }
@@ -84,9 +87,9 @@ export class ConvertJSON {
       identificacion: "NA",
       telefono: "NA",
       email: "NA",
-      provincia: "NA",
-      canton: "NA",
-      distrito: "NA",
+      provincia_id: 6,
+      canton_id: 601,
+      distrito_id: 60101,
       direccion: "NA",
     };
   }
@@ -98,17 +101,22 @@ export class ConvertJSON {
         return {
           codigoComercial: {
             tipo: "01",
-            codigo: item.product.sku || `PROD${index + 1}`,
+            codigo: item.product.sku,
           },
-          descripcion: item.product.product_name || "Producto sin descripción",
+          descripcion: item.product.product_name,
           cantidad: item.quantity,
           unidadMedida: "NA",
-          precioUnitario: parseFloat(String(item.unit_price)),
+          precioUnitario: parseFloat(
+            String(
+              Number(item.product.unit_price) +
+                Number(item.product.profit_margin)
+            )
+          ),
           impuesto: {
             codigo: "01",
             codigoTarifa: "08",
             tarifa: tax?.percentage ?? 0,
-            codigoCABYS: tax?.name ?? "NA"
+            codigoCABYS: tax?.name ?? "NA",
           },
         };
       })
@@ -117,7 +125,7 @@ export class ConvertJSON {
 
   private async getTax(id: number): Promise<TTaxEndpoint | null> {
     const tax = await Tax.findByPk(id);
-    tax?.name
+    tax?.name;
     return tax;
   }
 }

@@ -16,6 +16,9 @@ import Role from "../../Role/domain/models/RoleModel.js";
 import { ConvertJSON } from "../../ElectronicInvoice/services/pdf/convertJSON.js";
 import { PDFFactory } from "../../ElectronicInvoice/services/pdf/PDFFactory.js";
 import type { PDFType } from "../../ElectronicInvoice/domain/types/PDFType.js";
+import { ConsecutiveService } from "../../ElectronicInvoice/services/generateConsecutive.js";
+import { receiptTypes } from "../../ElectronicInvoice/domain/types/TReceiptTypes.js";
+import { Transaction } from "sequelize";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -147,19 +150,31 @@ export class InvoiceService implements IInvoiceServices {
 
   post = async (data: TInvoice): Promise<TBuffer> => {
     const transaction = await sequelize.transaction();
-
+    const time = Date.now();
     try {
-      const customer = await Customer.findByPk(data.customer_id, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
-      if (!customer) throw new Error("Customer dont exist");
+      if (["Debit Card", "Transfer"].includes(data.payment_method)) {
+        if (!data.payment_receipt?.trim()) {
+          throw new Error(
+            "Payment receipt is required for Debit Card or Transfer"
+          );
+        }
 
-      const employee = await User.findByPk(data.user_id, {
-        transaction,
-        lock: transaction.LOCK.UPDATE,
-      });
-      if (!employee) throw new Error("employee dont exist");
+        const existingReceipt = await Invoice.findOne({
+          where: { payment_receipt: data.payment_receipt },
+          transaction,
+          lock: Transaction.LOCK.KEY_SHARE,
+        });
+
+        if (existingReceipt) throw new Error("Payment receipt already exists");
+      }
+
+      const [customer, employee] = await Promise.all([
+        Customer.findByPk(data.customer_id, { transaction }),
+        User.findByPk(data.user_id, { transaction }),
+      ]);
+
+      if (!customer) throw new Error("Customer doesn't exist");
+      if (!employee) throw new Error("Employee doesn't exist");
 
       let credit: Credit | null = null;
 
@@ -170,33 +185,40 @@ export class InvoiceService implements IInvoiceServices {
           lock: transaction.LOCK.UPDATE,
         });
 
-        if (credit?.status !== "Aproved") {
+        if (!credit || credit.status !== "Aproved") {
           throw new Error(
-            `Customer doesn't have a credit approved, status: ${credit?.status}`
+            `Customer doesn't have an approved credit (status: ${
+              credit?.status ?? "none"
+            })`
           );
         }
       }
 
+      const productIds = data.products.map((p) => p.id).sort();
+      const products = await Product.findAll({
+        where: { id: productIds },
+        include: [{ model: Tax, as: "tax" }],
+        transaction,
+        lock: { level: Transaction.LOCK.UPDATE, of: Product },
+      });
+
       let subtotal = 0;
       let taxTotal = 0;
 
-      const productsWithTax = [];
+      const productsWithTax: any[] = [];
 
       for (const item of data.products) {
-        const product = await Product.findByPk(item.id, {
-          transaction,
-          lock: transaction.LOCK.UPDATE,
-        });
-        if (!product) throw new Error("Product not found");
-
-        const tax = await Tax.findByPk(product.tax_id, { transaction });
-        if (!tax) throw new Error("Tax not found");
+        const product = products.find((p) => p.id === item.id);
+        if (!product) throw new Error(`Product ${item.id} not found`);
 
         const quantity = Number(item.quantity ?? 1);
+        const tax = product.tax;
+        if (!tax)
+          throw new Error(`Tax not found for product ${product.product_name}`);
 
         if (product.stock < quantity) {
           throw new Error(
-            `Product ${product.product_name} id:${product?.id} of order doesn't have enough stock`
+            `Product ${product.product_name} does not have enough stock`
           );
         }
 
@@ -217,19 +239,16 @@ export class InvoiceService implements IInvoiceServices {
           unit_price: product.unit_price,
         });
 
-        await product.update(
-          { stock: product.stock - quantity },
-          { transaction }
-        );
+        product.stock -= quantity;
       }
+
+      await Promise.all(products.map((p) => p.save({ transaction })));
 
       const total = subtotal + taxTotal;
       const amount_paid = data.payment_method === "Credit" ? 0 : total;
       const uuid = uuidv4();
 
-      if (data.payment_method === "Credit") {
-        if (!credit) throw new Error("Credit not found");
-
+      if (data.payment_method === "Credit" && credit) {
         if (credit.balance < total) {
           throw new Error("The customer does not have sufficient funds");
         }
@@ -241,27 +260,30 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       if (data.payment_method === "Cash") {
-        const registered = await CashRegister.findByPk(data.cash_register_id, {
-          transaction,
-          lock: transaction.LOCK.UPDATE,
-        });
+        const cashRegister = await CashRegister.findByPk(
+          data.cash_register_id,
+          {
+            transaction,
+            lock: Transaction.LOCK.UPDATE,
+          }
+        );
 
-        if (!registered) {
-          throw new Error("Cash register not found.");
-        }
+        if (!cashRegister) throw new Error("Cash register not found");
+        if (cashRegister.status !== "open")
+          throw new Error("The cash register is closed");
+        if (cashRegister.amount < total)
+          throw new Error("Insufficient funds in cash register");
 
-        if (registered.status !== "open") {
-          throw new Error("The cash register is closed.");
-        }
-
-        if (registered.amount < total) {
-          throw new Error("Insufficient funds in cash register.");
-        }
-
-        const newAmount = parseFloat((registered.amount - total).toFixed(2));
-
-        await registered.update({ amount: newAmount }, { transaction });
+        const newAmount = parseFloat((cashRegister.amount - total).toFixed(2));
+        await cashRegister.update({ amount: newAmount }, { transaction });
       }
+
+      const consecutive = await ConsecutiveService.getNext(
+        "001",
+        "01",
+        receiptTypes.ELECTRONIC_INVOICE,
+        transaction
+      );
 
       const invoice = await Invoice.create(
         {
@@ -276,35 +298,48 @@ export class InvoiceService implements IInvoiceServices {
           user_id: data.user_id,
           status: data.status,
           invoice_number: uuid,
+          payment_receipt: data.payment_receipt ?? null,
           biometric_hash: data.biometric_hash ?? null,
           digital_signature: data.digital_signature ?? null,
           cash_register_id: data.cash_register_id,
+          branch: consecutive?.sucursal ?? null,
+          consecutive: consecutive?.consecutive ?? null,
+          consecutive_formatted: consecutive?.consecutiveFormatted ?? null,
+          sequence: consecutive?.sequence ?? null,
+          terminal: consecutive?.terminal ?? null,
+          type: consecutive?.tipo ?? null,
         },
         { transaction }
       );
 
-      for (const product of productsWithTax) {
-        await invoice.addProduct(product.product, {
-          through: {
-            quantity: product.quantity,
-            unit_price: product.unit_price,
-            subtotal: product.subtotal,
-          },
-          transaction,
-        });
-      }
+      await Promise.all(
+        productsWithTax.map((p) =>
+          invoice.addProduct(p.product, {
+            through: {
+              quantity: p.quantity,
+              unit_price: p.unit_price,
+              subtotal: p.subtotal,
+            },
+            transaction,
+          })
+        )
+      );
 
       await transaction.commit();
 
       const pdfType: PDFType = "A4";
 
-      const convertPdf = new ConvertJSON(invoice.dataValues, productsWithTax);
+      const convertPdf = new ConvertJSON(
+        invoice.dataValues,
+        productsWithTax,
+        consecutive
+      );
       const invoicePDF = PDFFactory.createPDF(
         pdfType,
         await convertPdf.transformJSON()
       );
       const buffer: Buffer = await invoicePDF.generate();
-
+      console.log("time to execute: " + (Date.now() - time));
       return { name: uuid, file: buffer };
     } catch (error) {
       const anyTransaction = transaction as any;

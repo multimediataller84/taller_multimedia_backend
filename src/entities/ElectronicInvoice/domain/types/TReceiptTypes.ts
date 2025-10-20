@@ -1,0 +1,11 @@
+export const receiptTypes = {
+  ELECTRONIC_INVOICE: '01',
+  DEBIT_NOTE: '02',
+  CREDIT_NOTE: '03',
+  ELECTRONIC_TICKET: '04',
+  DISPATCH_NOTE: '05',
+  CONTRACT: '06',
+  PROCEDURE: '07',
+  CONTINGENCY_RECEIPT: '08',
+  PURCHASE_INVOICE: '09'
+} as const;

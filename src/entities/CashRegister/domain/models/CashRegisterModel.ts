@@ -49,7 +49,7 @@ CashRegister.init(
     amount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,
-      defaultValue: 0.00
+      defaultValue: 0.0,
     },
     closing_amount: {
       type: DataTypes.DECIMAL(10, 2),
@@ -75,6 +75,11 @@ CashRegister.init(
     sequelize,
     modelName: "CashRegister",
     tableName: "cash_registers",
+    indexes: [
+      {
+        fields: ["id", "status"],
+      },
+    ],
     timestamps: false,
   }
 );

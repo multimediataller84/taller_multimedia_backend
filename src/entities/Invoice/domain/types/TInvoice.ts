@@ -11,9 +11,16 @@ export type TInvoice = {
   due_date: Date | null;
   cash_register_id: number;
   user_id: number;
+  payment_receipt?: string | null;
   payment_method: TPaymentMethod;
   products: ProdutList[];
   status: TInvoiceStatus;
   digital_signature: string | null;
   biometric_hash: string | null;
+  branch?: string | null;
+  terminal?: string | null;
+  type?: string | null;
+  sequence?: number | null;
+  consecutive?: string | null;
+  consecutive_formatted?: string | null;
 };
