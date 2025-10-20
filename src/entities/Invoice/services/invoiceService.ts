@@ -151,7 +151,7 @@ export class InvoiceService implements IInvoiceServices {
 
   post = async (data: TInvoice): Promise<TBuffer> => {
     const transaction = await sequelize.transaction();
-
+    const time = Date.now();
     try {
       if (["Debit Card", "Transfer"].includes(data.payment_method)) {
         if (!data.payment_receipt?.trim()) {
@@ -344,7 +344,7 @@ export class InvoiceService implements IInvoiceServices {
         await convertPdf.transformJSON()
       );
       const buffer: Buffer = await invoicePDF.generate();
-
+      console.log("time to execute: " + (Date.now() - time));
       return { name: uuid, file: buffer };
     } catch (error) {
       const anyTransaction = transaction as any;
