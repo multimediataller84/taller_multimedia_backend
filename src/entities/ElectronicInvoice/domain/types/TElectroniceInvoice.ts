@@ -63,5 +63,6 @@ export type TElectroniceInvoice = {
   condicionVenta: string;
   medioPago: string;
   moneda: string;
+  fechaEmision: string;
   detalles: TLineDetails[];
 };
