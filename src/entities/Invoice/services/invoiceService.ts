@@ -19,6 +19,7 @@ import type { PDFType } from "../../ElectronicInvoice/domain/types/PDFType.js";
 import { ConsecutiveService } from "../../ElectronicInvoice/services/generateConsecutive.js";
 import { receiptTypes } from "../../ElectronicInvoice/domain/types/TReceiptTypes.js";
 import { Transaction } from "sequelize";
+import { InvoiceProcessor } from "../../ElectronicInvoice/services/hacienda/electroniceInvoiceService.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -334,6 +335,10 @@ export class InvoiceService implements IInvoiceServices {
         productsWithTax,
         consecutive
       );
+
+      const invoiceProcesor = new InvoiceProcessor();
+      console.log(await invoiceProcesor.processInvoice(await convertPdf.transformJSON()));
+
       const invoicePDF = PDFFactory.createPDF(
         pdfType,
         await convertPdf.transformJSON()
