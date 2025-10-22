@@ -2,6 +2,45 @@ import PDFDocument from "pdfkit";
 import type { TElectronicInvoiceJSON } from "../../domain/types/TElectronicInvoiceJSON.js";
 import { GeneratePDF } from "../../domain/abstract/abstractClassPDF.js";
 
+import * as idConv from "../../utils/codeIDNumberConverter.js";
+import * as payCode from "../../utils/codePaymentMethodConverter.js";
+import * as payLang from "../../utils/paymentMethodLangConverter.js";
+
+function toIdTypeLabel(code: any): string {
+  try {
+    return (
+      (idConv as any).toLabel?.(code) ||
+      (idConv as any).codeIDNumberConverter?.(code) ||
+      (idConv as any).idTypeToLabel?.(code) ||
+      String(code ?? "")
+    );
+  } catch {
+    return String(code ?? "");
+  }
+}
+
+function toPaymentMethodLabel(code: any): string {
+  try {
+    const mapped =
+      (payLang as any).paymentMethodLangConverter?.(code) ||
+      (payLang as any).toLabel?.(code) ||
+      (payCode as any).toLabel?.(code) ||
+      (payCode as any).codePaymentMethodConverter?.(code);
+    return mapped ?? String(code ?? "");
+  } catch {
+    return String(code ?? "");
+  }
+}
+
+function fmtCRC(n: number | string | null | undefined) {
+  const v = Number(n ?? 0);
+  return v.toLocaleString("es-CR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function safeStr(v: any) {
+  return v == null ? "" : String(v);
+}
+
 export class PDFGeneratorA4 extends GeneratePDF {
   constructor(readonly invoice: TElectronicInvoiceJSON) {
     super(invoice);
@@ -9,9 +48,8 @@ export class PDFGeneratorA4 extends GeneratePDF {
 
   async generate(): Promise<Buffer> {
     const doc: PDFKit.PDFDocument = new PDFDocument({
-      size: "A4",
-      layout: "landscape",
-      margins: { top: 40, left: 40, right: 40, bottom: 40 },
+      size: "A4",                    // A4 portrait
+      margins: { top: 36, left: 40, right: 40, bottom: 36 },
     });
 
     const chunks: Buffer[] = [];
@@ -32,174 +70,232 @@ export class PDFGeneratorA4 extends GeneratePDF {
   }
 
   protected addHeader(doc: PDFKit.PDFDocument) {
-    const { id, consecutivo, codigoActividad, emisor } = this.invoice;
+    const { consecutivo, codigoActividad, emisor, fechaEmision, clave } = this.invoice;
+
+    const startY = doc.y;
+    doc
+      .font("Helvetica-Bold").fontSize(14)
+      .text(safeStr(emisor?.nombre), { align: "center" })
+      .moveDown(0.25)
+      .font("Helvetica").fontSize(10)
+      .text(safeStr(emisor?.nombreComercial ?? ""), { align: "center" })
+      .text(`Cédula (${toIdTypeLabel(emisor?.tipoIdentificacion)}): ${safeStr(emisor?.identificacion)}`, { align: "center" })
+      .text(`Actividad Económica: ${safeStr(codigoActividad)}`, { align: "center" })
+      .text(safeStr(emisor?.direccion ?? ""), { align: "center" })
+      .text(`Tel: +506 ${safeStr(emisor?.telefono)}`, { align: "center" })
+      .text(`Email: ${safeStr(emisor?.email)}`, { align: "center" });
+
+    doc.moveDown(0.6);
 
     doc
-      .fontSize(14)
-      .font("Helvetica-Bold")
-      .text(emisor.nombre, { align: "center" })
-      .moveDown(0.3)
-      .fontSize(10)
+      .font("Helvetica-Bold").fontSize(12)
+      .text(`FACTURA ELECTRÓNICA`, { align: "center" })
+      .moveDown(0.15)
       .font("Helvetica")
-      .text(emisor.nombreComercial ?? "", { align: "center" })
-      .text(`Cédula Jurídica: ${emisor.identificacion ?? "NA"}`, {
-        align: "center",
-      })
-      .text(`Actividad Económica: ${codigoActividad}`, { align: "center" })
-      .text(emisor.direccion ?? "", { align: "center" })
-      .text(`Tel: +506 ${emisor.telefono ?? "NA"}`, { align: "center" })
-      .text(`Email: ${emisor.email ?? ""}`, { align: "center" })
-      .moveDown(0.8)
-      .font("Helvetica-Bold")
-      .text(`FACTURA ELECTRÓNICA N°: ${consecutivo}`, { align: "center" })
-      .moveDown(0.5)
-      .font("Helvetica")
-      .text(`Fecha de emisión: ${this.invoice.fechaEmision}`, {
-        align: "center",
-      })
-      .moveDown(1);
+      .text(`Consecutivo: ${safeStr(consecutivo)}`, { align: "center" })
+      .text(`Fecha de emisión: ${safeStr(fechaEmision)}`, { align: "center" });
+
+    if (clave) {
+      doc.moveDown(0.15).fontSize(8).fillColor("#666")
+         .text(`Clave: ${clave}`, { align: "center" })
+         .fillColor("#000");
+    }
+
+    doc.moveTo(40, startY + 110).lineTo(doc.page.width - 40, startY + 110).stroke();
+    doc.moveDown(0.5);
   }
 
   protected addIssuerAndReceiver(doc: PDFKit.PDFDocument) {
-    const { receptor } = this.invoice;
+    const { receptor, emisor } = this.invoice;
 
+    const leftX = 40;
+    const midX  = doc.page.width / 2 + 10;
+
+    // Datos del cliente
     doc
-      .fontSize(10)
-      .font("Helvetica-Bold")
-      .text("Datos del Cliente", { underline: true })
-      .moveDown(0.3)
+      .fontSize(10).font("Helvetica-Bold")
+      .text("Datos del Cliente", leftX, doc.y + 8, { underline: true })
+      .moveDown(0.25)
       .font("Helvetica")
-      .text(`Nombre: ${receptor.nombre}`)
-      .text(
-        `Identificación (${receptor.tipoIdentificacion}): ${receptor.identificacion}`
-      )
-      .text(`Teléfono: ${receptor.telefono}`)
-      .text(`Correo: ${receptor.email}`)
-      .text(`Provincia: ${receptor.provincia_id}`)
-      .text(`Canton: ${receptor.canton_id}`)
-      .text(`Distrito: ${receptor.distrito_id}`)
-      .moveDown(1);
+      .text(`Nombre: ${safeStr(receptor?.nombre)}`, leftX)
+      .text(`Identificación (${toIdTypeLabel(receptor?.tipoIdentificacion)}): ${safeStr(receptor?.identificacion)}`, leftX)
+      .text(`Teléfono: ${safeStr(receptor?.telefono)}`, leftX)
+      .text(`Correo: ${safeStr(receptor?.email)}`, leftX)
+      .text(`Provincia: ${safeStr(receptor?.provincia_id)}  Cantón: ${safeStr(receptor?.canton_id)}  Distrito: ${safeStr(receptor?.distrito_id)}`, leftX);
+
+    // Datos del emisor (resumen, por si se requiere duplicado)
+    const yTop = doc.y - 72; // sube un poco el bloque derecho
+    doc
+      .font("Helvetica-Bold")
+      .text("Emisor", midX, yTop, { underline: true })
+      .moveDown(0.25)
+      .font("Helvetica")
+      .text(`Nombre: ${safeStr(emisor?.nombre)}`, midX)
+      .text(`Cédula (${toIdTypeLabel(emisor?.tipoIdentificacion)}): ${safeStr(emisor?.identificacion)}`, midX)
+      .text(`Email: ${safeStr(emisor?.email)}`, midX);
+
+    doc.moveDown(0.5);
   }
 
-  protected addDetails(doc: PDFKit.PDFDocument) {
-    const { detalles } = this.invoice;
-    const tableTop = doc.y;
+ protected addDetails(doc: PDFKit.PDFDocument) {
+  type Col = { label: string; x: number; w: number; align?: "left"|"center"|"right" };
 
-    const headers = [
-      { label: "Cód", x: 40 },
-      { label: "Descripción", x: 90 },
-      { label: "CABYS", x: 260 },
-      { label: "Unidad", x: 350 },
-      { label: "Cant", x: 420 },
-      { label: "P.Unit", x: 470 },
-      { label: "IVA", x: 540 },
-      { label: "Total", x: 600 },
-    ];
+  const { detalles = [] } = this.invoice;
 
-    doc.fontSize(9).font("Helvetica-Bold");
-    headers.forEach((h) => doc.text(h.label, h.x, tableTop));
-    doc
-      .moveTo(40, tableTop + 15)
-      .lineTo(700, tableTop + 15)
-      .stroke();
+  const headers = [
+    { label: "Cód",         x: 40,  w: 40,  align: "left"  },
+    { label: "Descripción", x: 90,  w: 170, align: "left"  },
+    { label: "CABYS",       x: 265, w: 70,  align: "left"  },
+    { label: "Unidad",      x: 340, w: 60,  align: "left"  },
+    { label: "Cant",        x: 405, w: 40,  align: "right" },
+    { label: "P.Unit",      x: 450, w: 70,  align: "right" },
+    { label: "IVA",         x: 525, w: 40,  align: "right" },
+    { label: "Total",       x: 570, w: 70,  align: "right" },
+  ] as const satisfies Readonly<[Col, Col, Col, Col, Col, Col, Col, Col]>;
 
-    let y = tableTop + 25;
-    doc.font("Helvetica").fontSize(9);
+  const [colCod, colDesc, colCabys, colUni, colCant, colPU, colIVA, colTotal] = headers;
 
-    detalles.forEach((item: any) => {
-      const totalLinea =
-        item.cantidad * item.precioUnitario * (1 + item.impuesto.tarifa / 100);
+  const tableTop = doc.y;
 
-      const descHeight = doc.heightOfString(item.descripcion, { width: 180 });
+  // Encabezados
+  doc.fontSize(9).font("Helvetica-Bold");
+  headers.forEach((h) => {
+    doc.text(h.label, h.x, tableTop, { width: h.w, align: h.align ?? "left" });
+  });
+  doc.moveTo(40, tableTop + 15).lineTo(700, tableTop + 15).stroke();
 
-      doc.text(`${item.codigoComercial.codigo}`, 40, y, { width: 40 });
-      doc.text(item.descripcion, 90, y, { width: 180 });
-      doc.text(item.impuesto.codigoCABYS, 260, y, { width: 80 });
-      doc.text(item.unidadMedida, 350, y, { width: 60 });
-      doc.text(`${item.cantidad}`, 420, y, { width: 40, align: "left" });
-      doc.text(`${item.precioUnitario.toFixed(2)}`, 470, y, {
-        width: 60,
-        align: "left",
+  let y = tableTop + 25;
+  doc.font("Helvetica").fontSize(9);
+
+  const fmt2 = (n: number) => (Number.isFinite(n) ? n.toFixed(2) : "0.00");
+  const fmt0 = (n: number) => (Number.isFinite(n) ? n.toFixed(0) : "0");
+
+  for (const raw of detalles as any[]) {
+    const codigo         = String(raw?.codigoComercial?.codigo ?? "");
+    const descripcion    = String(raw?.descripcion ?? "");
+    const cabys          = String(raw?.impuesto?.codigoCABYS ?? raw?.cabys ?? "");
+    const unidad         = String(raw?.unidadMedida ?? raw?.unidad ?? "Sp");
+    const cantidad       = Number(raw?.cantidad ?? 0);
+    const precioUnitario = Number(raw?.precioUnitario ?? 0);
+    const tarifaIVA      = Number(raw?.impuesto?.tarifa ?? 0);
+    const totalLinea     = cantidad * precioUnitario * (1 + (tarifaIVA > 0 ? tarifaIVA : 0) / 100);
+
+    const descHeight = doc.heightOfString(descripcion, { width: colDesc.w });
+
+    doc.text(codigo,                 colCod.x,   y, { width: colCod.w,   align: colCod.align ?? "left"  });
+    doc.text(descripcion,            colDesc.x,  y, { width: colDesc.w,  align: colDesc.align ?? "left" });
+    doc.text(cabys,                  colCabys.x, y, { width: colCabys.w, align: colCabys.align ?? "left" });
+    doc.text(unidad,                 colUni.x,   y, { width: colUni.w,   align: colUni.align ?? "left"  });
+    doc.text(fmt0(cantidad),         colCant.x,  y, { width: colCant.w,  align: colCant.align ?? "right" });
+    doc.text(fmt2(precioUnitario),   colPU.x,    y, { width: colPU.w,    align: colPU.align ?? "right"  });
+    doc.text(`${fmt0(tarifaIVA)}%`,  colIVA.x,   y, { width: colIVA.w,   align: colIVA.align ?? "right" });
+    doc.text(fmt2(totalLinea),       colTotal.x, y, { width: colTotal.w, align: colTotal.align ?? "right" });
+
+    y += Math.max(descHeight, 18);
+
+    // Salto de página
+    if (y > 520) {
+      doc.addPage({ size: "A4", layout: "landscape", margins: { top: 40, left: 40, right: 40, bottom: 40 } });
+      y = 60;
+
+      // Reimprime headers
+      doc.fontSize(9).font("Helvetica-Bold");
+      headers.forEach((h) => {
+        doc.text(h.label, h.x, y, { width: h.w, align: h.align ?? "left" });
       });
-      doc.text(`${item.impuesto.tarifa.toFixed(0)}%`, 540, y, {
-        width: 40,
-        align: "left",
-      });
-      doc.text(`${totalLinea.toFixed(2)}`, 600, y, {
-        width: 60,
-        align: "left",
-      });
-
-      y += Math.max(descHeight, 18);
-      if (y > 520) {
-        doc.addPage({ size: "A4", layout: "landscape" });
-        y = 60;
-      }
-    });
-
-    doc
-      .moveTo(40, y + 5)
-      .lineTo(700, y + 5)
-      .stroke();
-    doc.moveDown(1);
+      doc.moveTo(40, y + 15).lineTo(700, y + 15).stroke();
+      y += 25;
+      doc.font("Helvetica").fontSize(9);
+    }
   }
+
+  doc.moveTo(40, y + 5).lineTo(700, y + 5).stroke();
+  doc.moveDown(1);
+}
 
   protected addOrderCondition(doc: PDFKit.PDFDocument) {
-    const { condicionVenta, medioPago } = this.invoice;
+    const { condicionVenta, medioPago, moneda } = this.invoice;
 
     doc
-      .moveDown(0.5)
+      .moveDown(0.4)
       .fontSize(10)
       .font("Helvetica-Bold")
-      .text("Condiciones de Venta", { underline: true })
+      .text("Condiciones de Venta", 40, doc.y, { underline: true })
+      .moveDown(0.15)
       .font("Helvetica")
-      .text(`Condición: ${condicionVenta}`)
-      .text(`Medio de Pago: ${medioPago}`)
-      .moveDown(1);
+      .text(`Condición: ${safeStr(condicionVenta)}`, 40)
+      .text(`Medio de Pago: ${toPaymentMethodLabel(medioPago)} (${safeStr(medioPago)})`, 40)
+      .text(`Moneda: ${safeStr(moneda ?? "CRC")}`, 40)
+      .moveDown(0.5);
   }
 
   protected addTotals(doc: PDFKit.PDFDocument) {
     const { detalles, moneda } = this.invoice;
 
-    const subtotal = detalles.reduce(
-      (acc: number, item: any) => acc + item.cantidad * item.precioUnitario,
-      0
-    );
+    let subtotal = 0;
+    let descuentos = 0;
+    let impuesto = 0;
 
-    const totalImpuesto = detalles.reduce(
-      (acc: number, item: any) =>
-        acc +
-        item.cantidad * item.precioUnitario * (item.impuesto.tarifa / 100),
-      0
-    );
+    (detalles || []).forEach((item: any) => {
+      const cant = Number(item?.cantidad ?? 0);
+      const pu   = Number(item?.precioUnitario ?? 0);
+      const desc = Number(item?.descuento ?? 0);
+      const pct  = Number(item?.impuesto?.tarifa ?? 0);
 
-    const totalGeneral = subtotal + totalImpuesto;
+      const bruto = cant * pu;
+      const neto = Math.max(bruto - desc, 0);
+      const iva = neto * (pct / 100);
+
+      subtotal += neto;
+      descuentos += desc;
+      impuesto += iva;
+    });
+
+    const total = subtotal + impuesto;
+
+    const rightBlockX = doc.page.width - 260;
+    const lineY = doc.y + 6;
 
     doc
-      .fontSize(10)
-      .font("Helvetica-Bold")
-      .text("Totales", 500, doc.y, { underline: true })
-      .font("Helvetica")
-      .text(`Subtotal:  ${subtotal.toFixed(2)} ${moneda}`, 500)
-      .text(`IVA:       ${totalImpuesto.toFixed(2)} ${moneda}`, 500)
-      .moveDown(0.2)
-      .font("Helvetica-Bold")
-      .text(`TOTAL:     ${totalGeneral.toFixed(2)} ${moneda}`, 500)
-      .moveDown(1);
+      .font("Helvetica-Bold").fontSize(11)
+      .text("Totales", rightBlockX, doc.y, { underline: true });
+
+    doc.moveDown(0.2).font("Helvetica").fontSize(10);
+    const lblW = 110, valW = 120;
+
+    doc.text("Subtotal:", rightBlockX, doc.y + 4, { width: lblW, align: "right" });
+    doc.text(`${fmtCRC(subtotal)} ${this.invoice.moneda ?? "CRC"}`, rightBlockX + lblW + 10, doc.y, { width: valW, align: "right" });
+
+    doc.text("Descuentos:", rightBlockX, doc.y + 16, { width: lblW, align: "right" });
+    doc.text(`${fmtCRC(descuentos)} ${this.invoice.moneda ?? "CRC"}`, rightBlockX + lblW + 10, doc.y, { width: valW, align: "right" });
+
+    doc.text("Impuesto (IVA):", rightBlockX, doc.y + 16, { width: lblW, align: "right" });
+    doc.text(`${fmtCRC(impuesto)} ${this.invoice.moneda ?? "CRC"}`, rightBlockX + lblW + 10, doc.y, { width: valW, align: "right" });
+
+    doc
+      .moveTo(rightBlockX, doc.y + 22)
+      .lineTo(rightBlockX + lblW + valW + 10, doc.y + 22)
+      .stroke();
+
+    doc.font("Helvetica-Bold").text("TOTAL:", rightBlockX, doc.y + 6, { width: lblW, align: "right" });
+    doc.text(`${fmtCRC(total)} ${this.invoice.moneda ?? "CRC"}`, rightBlockX + lblW + 10, doc.y, { width: valW, align: "right" });
+
+    doc.moveDown(1);
   }
 
   protected addFooter(doc: PDFKit.PDFDocument) {
+    const y = doc.page.height - 48;
     doc
-      .moveDown(2)
       .fontSize(8)
-      .fillColor("gray")
+      .fillColor("#666")
       .text(
-        "Documento generado electrónicamente conforme a la normativa de Hacienda CR",
-        {
-          align: "center",
-        }
+        "Documento generado electrónicamente conforme a la normativa de Hacienda CR.",
+        40, y, { align: "center", width: doc.page.width - 80 }
       )
-      .text("Este documento no requiere firma manuscrita.", { align: "center" })
-      .fillColor("black");
+      .text(
+        "Este comprobante no requiere firma manuscrita.",
+        40, y + 12, { align: "center", width: doc.page.width - 80 }
+      )
+      .fillColor("#000");
   }
 }
