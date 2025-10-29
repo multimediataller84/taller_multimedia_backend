@@ -48,7 +48,7 @@ export class PDFGeneratorA4 extends GeneratePDF {
 
   async generate(): Promise<Buffer> {
     const doc: PDFKit.PDFDocument = new PDFDocument({
-      size: "A4",                    // A4 portrait
+      size: "A4",                    
       margins: { top: 36, left: 40, right: 40, bottom: 36 },
     });
 
@@ -123,8 +123,8 @@ export class PDFGeneratorA4 extends GeneratePDF {
       .text(`Correo: ${safeStr(receptor?.email)}`, leftX)
       .text(`Provincia: ${safeStr(receptor?.provincia_id)}  Cantón: ${safeStr(receptor?.canton_id)}  Distrito: ${safeStr(receptor?.distrito_id)}`, leftX);
 
-    // Datos del emisor (resumen, por si se requiere duplicado)
-    const yTop = doc.y - 72; // sube un poco el bloque derecho
+    // Datos del emisor
+    const yTop = doc.y - 72;
     doc
       .font("Helvetica-Bold")
       .text("Emisor", midX, yTop, { underline: true })
