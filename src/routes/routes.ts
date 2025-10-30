@@ -15,6 +15,7 @@ import { verifyRole } from "../middlewares/role.js";
 import processDataRouter from "../entities/ProcessData/routes/processDataRouter.js";
 import cashRegisterRouter from "../entities/CashRegister/routes/cashRegisterRoutes.js";
 import aiRecommendations from "./ai.recommendations.js";
+import passwordRecoveryRouter from "../entities/PasswordRecovery/routes/passwordRecoveryRoutes.js";
 
 const router = express.Router();
 
@@ -36,5 +37,6 @@ router.use("/credit/payment", authMiddleware, verifyRole(["admin", "employee"]),
 router.use("/admin/data", processDataRouter);
 router.use("/cash/register", cashRegisterRouter);
 router.use("/ai/recommendations", authMiddleware, verifyRole(["admin", "employee"]), aiRecommendations);
+router.use("/auth/recovery", passwordRecoveryRouter);
 
 export default router;
