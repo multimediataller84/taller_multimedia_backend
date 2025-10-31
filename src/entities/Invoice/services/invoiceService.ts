@@ -328,7 +328,7 @@ export class InvoiceService implements IInvoiceServices {
 
       await transaction.commit();
 
-      const pdfType: PDFType = "A4";
+      const pdfType: PDFType = "TICKET";
 
       const convertPdf = new ConvertJSON(
         invoice.dataValues,
