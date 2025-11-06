@@ -151,7 +151,7 @@ export class InvoiceService implements IInvoiceServices {
 
   post = async (data: TInvoice): Promise<TBuffer> => {
     const transaction = await sequelize.transaction();
-
+    const time = Date.now();
     try {
       if (["Debit Card", "Transfer"].includes(data.payment_method)) {
         if (!data.payment_receipt?.trim()) {
@@ -344,7 +344,7 @@ export class InvoiceService implements IInvoiceServices {
         await convertPdf.transformJSON()
       );
       const buffer: Buffer = await invoicePDF.generate();
-
+      console.log("time to execute: " + (Date.now() - time));
       return { name: uuid, file: buffer };
     } catch (error) {
       const anyTransaction = transaction as any;
@@ -406,11 +406,11 @@ export class InvoiceService implements IInvoiceServices {
   };
 
   delete = async (id: number): Promise<TInvoiceEndpoint> => {
-    const transaction = await sequelize.transaction();
-    try {
-      const invoice = await Invoice.findByPk(id, {
+  const transaction = await sequelize.transaction();
+  try {
+    const invoice =
+      (await Invoice.findByPk(id, {
         transaction,
-        lock: transaction.LOCK.UPDATE,
         include: [
           {
             model: Customer,
@@ -445,7 +445,45 @@ export class InvoiceService implements IInvoiceServices {
             ],
           },
         ],
-      });
+      })) ||
+      (await Invoice.findOne({
+        where: { invoice_number: String(id) },
+        transaction,
+        include: [
+          {
+            model: Customer,
+            as: "customer",
+            attributes: [
+              "id",
+              "name",
+              "last_name",
+              "address",
+              "id_number",
+              "phone",
+              "email",
+            ],
+          },
+          {
+            model: Product,
+            as: "products",
+            attributes: ["id", "product_name", "sku"],
+            through: { attributes: ["quantity", "unit_price", "subtotal"] },
+          },
+          {
+            model: CreditPayment,
+            as: "payments",
+            attributes: [
+              "id",
+              "credit_id",
+              "payment_date",
+              "amount",
+              "payment_method",
+              "note",
+              "createdAt",
+            ],
+          },
+        ],
+      }));
 
       if (!invoice) {
         throw new Error("Invoice not found");
@@ -460,7 +498,6 @@ export class InvoiceService implements IInvoiceServices {
           const credit = await Credit.findOne({
             where: { customer_id: invoice.customer_id },
             transaction,
-            lock: transaction.LOCK.UPDATE,
           });
 
           if (credit) {
@@ -477,10 +514,10 @@ export class InvoiceService implements IInvoiceServices {
       await invoice.destroy({ transaction });
       await transaction.commit();
 
-      return invoice;
-    } catch (error) {
-      await transaction.rollback();
-      throw new Error("Error at: " + error);
-    }
-  };
+    return invoice;
+  } catch (error) {
+    await transaction.rollback();
+    throw new Error("Error at delete: " + error);
+  }
+};
 }
