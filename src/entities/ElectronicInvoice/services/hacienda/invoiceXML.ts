@@ -11,14 +11,14 @@ export class ElectroniceInvoiceXML {
   private generarClave(): string {
     const fecha = new Date();
     const day = String(fecha.getDate()).padStart(2, '0');
-    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
     const year = String(fecha.getFullYear()).slice(-2);
 
     const id_number = this.invoice.emisor.identificacion.replace(/-/g, '').padStart(12, '0');
     const consecutive = this.invoice.consecutivo;
     const securityCode = String(Math.floor(Math.random() * 100000000)).padStart(8, '0');
 
-    return this.COUNTRYCODE + day + mes + year + id_number + consecutive + this.situation + securityCode;
+    return this.COUNTRYCODE + day + month + year + id_number + consecutive + this.situation + securityCode;
   }
 
   private generarDetalles(): string {
@@ -79,6 +79,7 @@ export class ElectroniceInvoiceXML {
     const totalImpuesto = this.invoice.detalles.reduce((acc, d) => acc + ((d.cantidad * d.precioUnitario - (d.descuento || 0)) * (d.impuesto?.tarifa || 0) / 100), 0);
     const totalOtros = this.invoice.detalles.reduce((acc, d) => acc + (d.otrosCargos || 0), 0);
     const totalIVADevuelto = this.invoice.detalles.reduce((acc, d) => acc + (d.ivaDevuelto || 0), 0);
+    const totalOtrosCargos = this.invoice.detalles.reduce((acc, d) => acc + (d.otrosCargos || 0), 0);
     const totalComprobante = subtotal + totalImpuesto + totalOtros - totalIVADevuelto;
 
     const xml = `<?xml version="1.0" encoding="UTF-8"?>
@@ -141,6 +142,8 @@ export class ElectroniceInvoiceXML {
         <TotalDescuentos>0.00000</TotalDescuentos>
         <TotalVentaNeta>${subtotal.toFixed(5)}</TotalVentaNeta>
         <TotalImpuesto>${totalImpuesto.toFixed(5)}</TotalImpuesto>
+        ${totalIVADevuelto > 0 ? `<TotalIVADevuelto>${totalIVADevuelto.toFixed(5)}</TotalIVADevuelto>` : ''}
+        ${totalOtrosCargos > 0 ? `<TotalOtrosCargos>${totalOtrosCargos.toFixed(5)}</TotalOtrosCargos>` : ''}
         <TotalComprobante>${totalComprobante.toFixed(5)}</TotalComprobante>
       </ResumenFactura>
     </FacturaElectronica>`;

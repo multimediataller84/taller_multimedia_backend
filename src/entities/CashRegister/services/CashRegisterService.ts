@@ -162,7 +162,6 @@ export class CashRegisterService implements ICashRegisterService {
       closing_amount: data.closing_amount,
       closed_at: new Date(),
       amount: data.closing_amount,
-      user_id: null,
       status: "closed" as const,
     });
   };
