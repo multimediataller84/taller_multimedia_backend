@@ -185,6 +185,7 @@ export class UserService implements IUserServices {
       const payload = {
         id: user.id,
         email: user.email,
+        name: user.name,
         username: user.username,
         role: user.role?.name,
       };
