@@ -20,6 +20,7 @@ import { ConsecutiveService } from "../../ElectronicInvoice/services/generateCon
 import { receiptTypes } from "../../ElectronicInvoice/domain/types/TReceiptTypes.js";
 import { Transaction } from "sequelize";
 import { InvoiceProcessor } from "../../ElectronicInvoice/services/hacienda/electroniceInvoiceService.js";
+import { config } from "../../../utilities/config.js";
 export class InvoiceService implements IInvoiceServices {
   private static instance: InvoiceService;
 
@@ -291,8 +292,8 @@ export class InvoiceService implements IInvoiceServices {
       }
 
       const consecutive = await ConsecutiveService.getNext(
-        "001",
-        "01",
+        config.TERMINAL,
+        data.cash_register_id.toString().padStart(2, "0"),
         receiptTypes.ELECTRONIC_INVOICE,
         transaction
       );

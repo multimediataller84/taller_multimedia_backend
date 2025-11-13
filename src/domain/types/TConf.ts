@@ -16,4 +16,5 @@ export type TConfig = {
   HACIENDA_TOKEN: string;
   CERTIFICATE_PATH: string;
   CERTIFICATE_PASSWORD: string;
+  TERMINAL: string;
 };

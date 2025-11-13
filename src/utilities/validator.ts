@@ -21,6 +21,7 @@ const envSchema = z.object({
   HACIENDA_TOKEN: z.string(),
   CERTIFICATE_PATH: z.string(),
   CERTIFICATE_PASSWORD: z.string(),
+  TERMINAL: z.string(),
 });
 
 export const env = envSchema.parse(process.env);
