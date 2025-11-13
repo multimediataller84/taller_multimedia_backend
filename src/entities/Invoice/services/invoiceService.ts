@@ -272,11 +272,22 @@ export class InvoiceService implements IInvoiceServices {
         if (!cashRegister) throw new Error("Cash register not found");
         if (cashRegister.status !== "open")
           throw new Error("The cash register is closed");
-        if (cashRegister.amount < total)
-          throw new Error("Insufficient funds in cash register");
 
-        const newAmount = parseFloat((cashRegister.amount - total).toFixed(2));
-        await cashRegister.update({ amount: newAmount }, { transaction });
+        const change = data.change_due ?? 0;
+        const cashGiven = data.cash_given ?? 0;
+
+        const registerAmount = parseFloat(String(cashRegister.amount));
+
+        if (change && registerAmount < change)
+          throw new Error("Insufficient funds in cash register");
+        console.log(change, cashGiven, registerAmount);
+        if (cashGiven) {
+          const newAmount = parseFloat(
+            (registerAmount + (cashGiven - change)).toFixed(2)
+          );
+
+          await cashRegister.update({ amount: newAmount }, { transaction });
+        }
       }
 
       const consecutive = await ConsecutiveService.getNext(
@@ -337,7 +348,9 @@ export class InvoiceService implements IInvoiceServices {
       );
 
       const invoiceProcesor = new InvoiceProcessor();
-      console.log(await invoiceProcesor.processInvoice(await convertPdf.transformJSON()));
+      console.log(
+        await invoiceProcesor.processInvoice(await convertPdf.transformJSON())
+      );
 
       const invoicePDF = PDFFactory.createPDF(
         pdfType,
@@ -406,84 +419,84 @@ export class InvoiceService implements IInvoiceServices {
   };
 
   delete = async (id: number): Promise<TInvoiceEndpoint> => {
-  const transaction = await sequelize.transaction();
-  try {
-    const invoice =
-      (await Invoice.findByPk(id, {
-        transaction,
-        include: [
-          {
-            model: Customer,
-            as: "customer",
-            attributes: [
-              "id",
-              "name",
-              "last_name",
-              "address",
-              "id_number",
-              "phone",
-              "email",
-            ],
-          },
-          {
-            model: Product,
-            as: "products",
-            attributes: ["id", "product_name", "sku"],
-            through: { attributes: ["quantity", "unit_price", "subtotal"] },
-          },
-          {
-            model: CreditPayment,
-            as: "payments",
-            attributes: [
-              "id",
-              "credit_id",
-              "payment_date",
-              "amount",
-              "payment_method",
-              "note",
-              "createdAt",
-            ],
-          },
-        ],
-      })) ||
-      (await Invoice.findOne({
-        where: { invoice_number: String(id) },
-        transaction,
-        include: [
-          {
-            model: Customer,
-            as: "customer",
-            attributes: [
-              "id",
-              "name",
-              "last_name",
-              "address",
-              "id_number",
-              "phone",
-              "email",
-            ],
-          },
-          {
-            model: Product,
-            as: "products",
-            attributes: ["id", "product_name", "sku"],
-            through: { attributes: ["quantity", "unit_price", "subtotal"] },
-          },
-          {
-            model: CreditPayment,
-            as: "payments",
-            attributes: [
-              "id",
-              "credit_id",
-              "payment_date",
-              "amount",
-              "payment_method",
-              "note",
-              "createdAt",
-            ],
-          },
-        ],
-      }));
+    const transaction = await sequelize.transaction();
+    try {
+      const invoice =
+        (await Invoice.findByPk(id, {
+          transaction,
+          include: [
+            {
+              model: Customer,
+              as: "customer",
+              attributes: [
+                "id",
+                "name",
+                "last_name",
+                "address",
+                "id_number",
+                "phone",
+                "email",
+              ],
+            },
+            {
+              model: Product,
+              as: "products",
+              attributes: ["id", "product_name", "sku"],
+              through: { attributes: ["quantity", "unit_price", "subtotal"] },
+            },
+            {
+              model: CreditPayment,
+              as: "payments",
+              attributes: [
+                "id",
+                "credit_id",
+                "payment_date",
+                "amount",
+                "payment_method",
+                "note",
+                "createdAt",
+              ],
+            },
+          ],
+        })) ||
+        (await Invoice.findOne({
+          where: { invoice_number: String(id) },
+          transaction,
+          include: [
+            {
+              model: Customer,
+              as: "customer",
+              attributes: [
+                "id",
+                "name",
+                "last_name",
+                "address",
+                "id_number",
+                "phone",
+                "email",
+              ],
+            },
+            {
+              model: Product,
+              as: "products",
+              attributes: ["id", "product_name", "sku"],
+              through: { attributes: ["quantity", "unit_price", "subtotal"] },
+            },
+            {
+              model: CreditPayment,
+              as: "payments",
+              attributes: [
+                "id",
+                "credit_id",
+                "payment_date",
+                "amount",
+                "payment_method",
+                "note",
+                "createdAt",
+              ],
+            },
+          ],
+        }));
 
       if (!invoice) {
         throw new Error("Invoice not found");
@@ -514,10 +527,10 @@ export class InvoiceService implements IInvoiceServices {
       await invoice.destroy({ transaction });
       await transaction.commit();
 
-    return invoice;
-  } catch (error) {
-    await transaction.rollback();
-    throw new Error("Error at delete: " + error);
-  }
-};
+      return invoice;
+    } catch (error) {
+      await transaction.rollback();
+      throw new Error("Error at delete: " + error);
+    }
+  };
 }

@@ -15,6 +15,8 @@ export type TInvoice = {
   payment_method: TPaymentMethod;
   products: ProdutList[];
   status: TInvoiceStatus;
+  cash_given?: number;
+  change_due?: number;
   digital_signature: string | null;
   biometric_hash: string | null;
   branch?: string | null;
