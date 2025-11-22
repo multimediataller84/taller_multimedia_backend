@@ -5,4 +5,5 @@ export type TElectronicInvoiceJSON = TElectroniceInvoice & {
   subtotal: number;
   impuestoTotal: number;
   total: number;
+  clave?: string;
 };
