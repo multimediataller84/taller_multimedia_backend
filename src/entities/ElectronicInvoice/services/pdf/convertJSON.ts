@@ -61,7 +61,7 @@ export class ConvertJSON {
       canton: "601",
       distrito: "60101",
       direccion: "Puntarenas, Costa Rica",
-      telefono: "8888-9999",
+      telefono: "8678-1167",
       email: "maravilla@facsa.cr",
     };
   }
